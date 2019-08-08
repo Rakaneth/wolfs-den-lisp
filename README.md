@@ -1,9 +1,7 @@
-# wolfs-den-lisp
-### _Your Name <your.name@example.com>_
+# Wolf's Den, Common Lisp Edition
 
-This is a project to do ... something.
+This is a Common Lisp (SBCL) implementation of my roguelike concept Wolf's Den, used as a starter project to learn new languages.
 
-## License
+Warning: This may not receive updates quickly. I have a lot of these and I work on them as mood and time allow.
 
-Specify license here
 
