@@ -8,4 +8,5 @@
   :serial t
   :depends-on (#:cl-blt)
   :components ((:file "package")
-               (:file "wolfs-den-lisp")))
+               (:file "wolfs-den-lisp")
+               (:file "entity")))
