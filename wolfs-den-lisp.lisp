@@ -8,6 +8,7 @@
 (defun render (entities)
   (blt:clear)
   (mapc #'draw entities)
+  (blt:print 50 0 (entity/name (first entities)))
   (blt:refresh))
 
 (defun config ()

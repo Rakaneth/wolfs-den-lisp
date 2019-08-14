@@ -4,16 +4,24 @@
   ((x 
     :initarg :x 
     :accessor entity/x)
-  (y 
-   :initarg :y 
-   :accessor entity/y)
-  (char 
-   :initarg :char 
-   :accessor entity/char)
-  (color
-   :initarg :color 
-   :accessor entity/color
-   :initform (blt:yellow))))
+   (y 
+    :initarg :y 
+    :accessor entity/y)
+   (char 
+    :initarg :char 
+    :accessor entity/char)
+   (color
+    :initarg :color 
+    :accessor entity/color
+    :initform (blt:yellow))
+   (name
+    :initarg :name
+    :accessor entity/name
+    :initform "No name")
+   (desc
+    :initarg :desc
+    :accessor entity/desc
+    :initform "No desc")))
 
 (defmethod pos ((e entity))
   (cons (entity/x e) (entity/y e)))
