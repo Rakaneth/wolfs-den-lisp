@@ -22,10 +22,18 @@
                           :x 20
                           :y 20
                           :char #\@
-                          :color (blt:white))
+                          :color (blt:blue))
           :with entities = (list player)
           :do
             (render entities)
             (blt:key-case (blt:read)
+                          (:numpad-8 (move-coord player +north+))
+                          (:numpad-9 (move-coord player +northeast+))
+                          (:numpad-6 (move-coord player +east+))
+                          (:numpad-3 (move-coord player +southeast+))
+                          (:numpad-2 (move-coord player +south+))
+                          (:numpad-1 (move-coord player +southwest+))
+                          (:numpad-4 (move-coord player +west+))
+                          (:numpad-7 (move-coord player +northwest+))
                           (:escape (return))
                           (:close (return))))))
