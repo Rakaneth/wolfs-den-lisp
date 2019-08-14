@@ -40,4 +40,5 @@
 (defmethod draw ((e entity))
   (with-slots (x y char color) e
     (setf (blt:color) color
-          (blt:cell-char x y) char)))
+          (blt:cell-char x y) char))
+  (setf (blt:color) (blt:white)))

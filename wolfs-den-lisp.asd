@@ -10,4 +10,5 @@
   :components ((:file "package")
                (:file "wolfs-den-lisp")
                (:file "entity")
-               (:file "directions")))
+               (:file "directions")
+               (:file "utility")))
