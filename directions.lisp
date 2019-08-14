@@ -9,3 +9,6 @@
 (defconstant +west+ (cons -1 0))
 (defconstant +northwest+ (cons -1 -1))
 
+(defun translate-coord (coord delta)
+  (cons (+ (car coord) (car delta)) (+ (cdr coord) (cdr delta))))
+
