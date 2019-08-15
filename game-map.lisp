@@ -35,7 +35,7 @@
     ((< (rect/x2 r1) (rect/x1 r2)) nil)
     ((< (rect/x2 r2) (rect/x1 r1)) nil)
     ((< (rect/y2 r1) (rect/y1 r2)) nil)
-    ((< (rect/y2 r2) (rect/y2 r1)) nil)
+    ((< (rect/y2 r2) (rect/y1 r1)) nil)
     (t t)))
 
 (defmethod points ((r rect))
