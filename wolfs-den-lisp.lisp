@@ -23,7 +23,7 @@
                           :x 20
                           :y 20
                           :char #\@
-                          :color (blt:blue))
+                          :color "yellow")
           :with entities = (list player)
           :do
             (render entities)

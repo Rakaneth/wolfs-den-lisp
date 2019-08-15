@@ -13,7 +13,7 @@
    (color
     :initarg :color 
     :accessor entity/color
-    :initform (blt:yellow))
+    :initform "white")
    (name
     :initarg :name
     :accessor entity/name
@@ -36,9 +36,12 @@
          (new-pos (translate-coord cur-pos delta)))
     (move-to e (car new-pos) (cdr new-pos))))
 
+(defmethod display-string ((e entity))
+  (decorate (entity/name e) (entity/color e)))
+
 
 (defmethod draw ((e entity))
   (with-slots (x y char color) e
-    (setf (blt:color) color
+    (setf (blt:color) (color-from-name (entity/color e))
           (blt:cell-char x y) char))
   (setf (blt:color) (blt:white)))

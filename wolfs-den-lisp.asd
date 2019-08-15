@@ -11,4 +11,6 @@
                (:file "wolfs-den-lisp")
                (:file "entity")
                (:file "directions")
-               (:file "utility")))
+               (:file "utility")
+               (:file "load-blt")
+               (:file "swatch")))
