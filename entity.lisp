@@ -1,4 +1,4 @@
-(in-package :wolfs-den-lisp)
+(in-package #:wolfs-den-lisp)
 
 (defclass entity ()
   ((x 

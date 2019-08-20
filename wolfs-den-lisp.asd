@@ -13,4 +13,5 @@
                (:file "directions")
                (:file "utility")
                (:file "load-blt")
+               (:file "game-map")
                (:file "swatch")))
