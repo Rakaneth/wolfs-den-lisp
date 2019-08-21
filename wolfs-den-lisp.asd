@@ -8,10 +8,12 @@
   :serial t
   :depends-on (#:cl-blt #:cl-pcg)
   :components ((:file "package")
+               (:file "config")
                (:file "wolfs-den-lisp")
                (:file "entity")
                (:file "directions")
                (:file "utility")
                (:file "load-blt")
                (:file "game-map")
-               (:file "swatch")))
+               (:file "swatch")
+               (:file "ui")))

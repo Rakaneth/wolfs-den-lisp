@@ -26,7 +26,7 @@
 (defmethod initialize-instance :after ((r rect) &key x y w h)
   (with-slots (x1 x2 y1 y2) r
     (setf x1 x
-          y1 y
+          y1 yf
           x2 (1- (+ x w))
           y2 (1- (+ y h)))))
 

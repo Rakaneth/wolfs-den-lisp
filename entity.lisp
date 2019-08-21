@@ -21,7 +21,10 @@
    (desc
     :initarg :desc
     :accessor entity/desc
-    :initform "No desc")))
+    :initform "No desc")
+   (id
+    :initarg :id
+    :reader entity/id)))
 
 (defmethod pos ((e entity))
   (cons (entity/x e) (entity/y e)))
