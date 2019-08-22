@@ -1,6 +1,8 @@
 (in-package #:wolfs-den-lisp)
 
 (defvar *maps* (make-hash-table))
+(defparameter *viewport-width* 50)
+(defparameter *viewport-height* 30)
 
 (defun add-map (map)
   (setf (gethash (game-map/id map) *maps*) map))
@@ -63,7 +65,6 @@
 (defmethod perimeter ((r rect))
   (set-difference (points r) (interior r) :test #'equal))
 
-
 (defclass game-map ()
   ((width :initarg :width :reader game-map/w)
    (height :initarg :height :reader game-map/h)
@@ -71,7 +72,20 @@
    (name :initarg :name :accessor game-map/name)
    (id :initarg :id :accessor game-map/id)
    (x-edge :reader game-map/x-edge)
-   (y-edge :reader game-map/y-edge)))
+   (y-edge :reader game-map/y-edge)
+   (focus :initform (cons 0 0) :accessor game-map/focus)
+   (entities :initform `() :accessor game-map/entities)))
+
+(defun cam (m center-point)
+  (let ((x (car center-point))
+        (y (cdr center-point))
+        (w (game-map/w m))
+        (h (game-map/h m))
+        (calc (lambda (p md s) (clamp (- p (/ s 2))
+                                      0
+                                      (max 0 (- md s))))))
+    (values (funcall calc x w *viewport-width*)
+            (funcall calc y h *viewport-height*))))
 
 (defmethod initialize-instance :after ((map game-map) &rest initargs)
   (declare (ignore initargs))
@@ -86,9 +100,15 @@
   (with-slots (x-edge y-edge) m
     (points-list 0 x-edge 0 y-edge)))
 
-(defmethod all-walls ((m game-map))
+(defun all-walls (m)
   (loop :for pos in (points m)
         :do (set-tile m pos :wall)))
+
+(defun random-walls (m &optional (chance 50))
+  (loop :for pos in (points m)
+        :do (if (getf  (roll 100 :target (- 100 chance)) :success)
+                (set-tile m pos :wall)
+                (set-tile m pos :floor))))
 
 (defmethod in-bounds-p ((m game-map) coord)
   (and (between-p (car coord) 0 (game-map/x-edge m))
