@@ -3,8 +3,8 @@
 (defgeneric draw (drawable)
   (:documentation "Draw an object to the screen."))
 
-(defgeneric handle (screen key-code shift-p)
-  (:documentation "Handle inputs on the screen."))
+(defgeneric handle (screen)
+  (:documentation "Handle inputs on the screen. Should return NIL to exit the game."))
 
 (defclass screen ()
   ((screen/id :initarg :id :reader screen/id)))
@@ -15,8 +15,13 @@
 (defmethod exit ((s screen))
   (format t "Exited ~a screen.~%" (screen/id s)))
 
-(defmethod handle ((s screen) key-code shift-p)
-  (format t "Pressed ~a key.~@[Shift is down.~]~%" key-code shift-p))
+(defmethod handle ((s screen))
+  (blt:key-case (blt:read)
+                (:escape nil)
+                (:close nil)
+                (t (progn
+                     (format t "pressed key")
+                     t))))
 
 (defun push-screen (s)
   (enter s)
@@ -24,4 +29,23 @@
 
 (defun pop-screen ()
   (exit (vector-pop *screens*)))
+
+(defun cur-screen () 
+  (elt *screens* (1- (length *screens*))))
+
+(defclass title-screen (screen) ())
+
+(defmethod initialize-instance :after ((ts title-screen) &key)
+  (setf (slot-value ts 'screen/id) "title"))
+
+(defmethod draw ((ts title-screen))
+  (blt:print 35 20 "Wolf's Den II: Common Lisp Edition")
+  (blt:print 35 21 "by Rakaneth"))
+
+(defclass main-screen (screen) ())
+
+(defmethod initialize-instance :after ((ms main-screen) &key)
+  (setf (slot-value ms 'screen/id) "main"))
+
+
 

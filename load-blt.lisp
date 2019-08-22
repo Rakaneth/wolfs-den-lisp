@@ -1,4 +1,4 @@
-(in-package :wolfs-den-lisp)
+(in-package #:wolfs-den-lisp)
 
 (cffi:define-foreign-library blt:bearlibterminal
   (t "lib/BearLibTerminal.dll"))

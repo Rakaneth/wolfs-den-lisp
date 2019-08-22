@@ -14,32 +14,19 @@
   (draw-screens)
   (blt:refresh))
 
-
-
 (defun config ()
   (blt:set "window.resizeable = true")
   (blt:set "window.size = ~Ax~A" *screen-width* *screen-height*)
   (blt:set "window.title = Wolf's Den II: Common Lisp Edition"))
 
+(defun new-game () 
+  (push-screen (make-instance 'title-screen)))
+
 (defun main()
   (blt:with-terminal
     (config)
-    (loop :with player = (make-instance 'entity
-                          :x 20
-                          :y 20
-                          :char #\@
-                          :color "sepia")
-          :with entities = (list player)
-          :do
-            (render entities)
-            (blt:key-case (blt:read)
-                          (:numpad-8 (move-by player +north+))
-                          (:numpad-9 (move-by player +northeast+))
-                          (:numpad-6 (move-by player +east+))
-                          (:numpad-3 (move-by player +southeast+))
-                          (:numpad-2 (move-by player +south+))
-                          (:numpad-1 (move-by player +southwest+))
-                          (:numpad-4 (move-by player +west+))
-                          (:numpad-7 (move-by player +northwest+))
-                          (:escape (return))
-                          (:close (return))))))
+    (new-game)
+    (loop :for top = (cur-screen)
+          :for shift-p = nil ;;;;(blt/ll:terminal-check blt/ll:+tk-shift+)
+          :do (render)
+              (unless (handle top) (return)))))
