@@ -4,11 +4,17 @@
 
 
 
-(defun render (entities)
+(defun draw-screens () 
+  (loop :for s across *screens*
+        :do (draw s)))
+
+
+(defun render ()
   (blt:clear)
-  (mapc #'draw entities)
-  (blt:print 50 0 (entity/name (first entities)))
+  (draw-screens)
   (blt:refresh))
+
+
 
 (defun config ()
   (blt:set "window.resizeable = true")

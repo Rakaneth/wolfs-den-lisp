@@ -5,5 +5,8 @@
 (defvar *maps* (make-hash-table))
 (defvar *screens* (make-array 10 :fill-pointer 0 :adjustable t))
 
-(defmacro add-map (map))
-(defmacro remove-map (map))
+(defun add-map (map)
+  (setf (gethash (game-map/id map) *maps*) map))
+
+(defun remove-map (map-id)
+  (remhash map-id *maps*))
