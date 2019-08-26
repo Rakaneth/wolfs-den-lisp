@@ -148,4 +148,6 @@
 (defmethod explored-p ((m game-map) coord)
   (tile-explored (get-tile m coord)))
 
+(defmethod explore ((m game-map) coord)
+  (setf (tile-explored (get-tile m coord)) t))
 
