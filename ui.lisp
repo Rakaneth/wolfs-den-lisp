@@ -16,7 +16,7 @@
   (:documentation "Handle inputs on the screen. Should return NIL to exit the game."))
 
 (defclass screen ()
-  ((screen/id :initarg :id :reader screen/id)))
+  ((id :initarg :id :reader screen/id)))
 
 (defmethod enter ((s screen))
   (format t "Entered ~a screen.~%" (screen/id s)))
@@ -45,34 +45,56 @@
 (defclass title-screen (screen) ())
 
 (defmethod initialize-instance :after ((ts title-screen) &key)
-  (setf (slot-value ts 'screen/id) "title"))
+  (setf (slot-value ts 'id) "title"))
 
 (defmethod draw ((ts title-screen))
   (blt:print 35 20 "Wolf's Den II: Common Lisp Edition")
   (blt:print 35 21 "by Rakaneth"))
 
 (defmethod handle ((ts title-screen))
-  (let ((m (make-instance 'menu 
-                          :menu-items `("New Game" "Continue")
-                          :name "new-game")))
-    (blt:key-case (blt:read)
-                  (:escape nil)
-                  (:close nil)
-                  (t (push-screen m)))))
+  (blt:key-case (blt:read)
+                (:escape nil)
+                (:close nil)
+                (t (push-screen (make-instance 'new-game-menu)))))
 
-(defclass main-screen (screen) ())
+(defclass main-screen (screen) 
+  ((cur-map :initarg :cur-map :accessor main-screen/cur-map)))
 
 (defmethod initialize-instance :after ((ms main-screen) &key)
-  (setf (slot-value ms 'screen/id) "main"))
+  (setf (slot-value ms 'id) "main"))
+
+(defmethod draw ((ms main-screen)))
 
 (defclass menu (screen) 
-  ((menu/items :initarg :menu-items :accessor menu/items)
-   (menu/selected :initform 0 :accessor menu/selected)
-   (menu/name :initarg :name :accessor menu/name)))
+  ((items :initarg :menu-items :accessor menu/items)
+   (selected :initform 0 :accessor menu/selected)
+   (name :initarg :name :accessor menu/name)))
 
 (defmethod initialize-instance :after ((m menu) &key)
-  (setf (slot-value m 'screen/id) 
+  (setf (slot-value m 'id) 
         (format nil "~A-menu" (menu/name m))))
+
+(defclass new-game-menu (menu) ())
+
+(defmethod initialize-instance :after ((ngm new-game-menu) &key)
+  (declare (ignore initargs))
+  (setf (menu/items ngm) (list "New Game" "Continue")
+        (menu/name ngm) "new-game")
+  (call-next-method))
+
+(defmethod handle ((ngm new-game-menu))
+  (blt:key-case (blt:read)
+                (:escape (pop-screen))
+                (:return (if (zerop (menu/selected ngm))
+                             (progn
+                               (clear-screens)
+                               (add-map (make-instance 'game-map 
+                                                        :id "mines-upper"
+                                                        :name "Upper Mines"
+                                                        :width 100
+                                                        :height 30))
+                               (push-screen (make-instance 'main-screen 
+                                                           :cur-map (get-map "mines=upper"))))))))
 
 (defmethod draw ((m menu))
   (let* ((lst (menu/items m))

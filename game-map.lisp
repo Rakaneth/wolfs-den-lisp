@@ -1,6 +1,6 @@
 (in-package #:wolfs-den-lisp)
 
-(defvar *maps* (make-hash-table))
+(defvar *maps* (make-hash-table :test 'equal))
 (defparameter *viewport-width* 50)
 (defparameter *viewport-height* 30)
 
@@ -10,8 +10,11 @@
 (defun remove-map (map-id)
   (remhash map-id *maps*))
 
+(defun get-map (map-id)
+  (gethash map-id *maps*))
+
 (defstruct tile 
-  (glyph #\x)
+  (glyph #\Nul)
   (color "transparent")
   (block-sight t)
   (block-path t)
@@ -151,3 +154,31 @@
 (defmethod explore ((m game-map) coord)
   (setf (tile-explored (get-tile m coord)) t))
 
+(defun viewport (m)
+  (multiple-value-bind (x y) (cam m (game-map/focus m))
+    (points (make-instance 'rect 
+                           :x x
+                           :y y
+                           :w *viewport-width*
+                           :h *viewport-height*))))
+
+(defun index->coord (m idx)
+  (cons (mod idx (game-map/w m))
+        (/ idx (game-map/w m))))
+
+(defun coord->index (m coord)
+  (destructuring-bind (x . y) coord
+    (+ x (* y (game-map/w m)))))
+
+(defmethod draw ((m game-map))
+  (loop :for i below (* *viewport-width* *viewport-height*)
+        :for screen-coord = (index->coord m i)
+        :for tl = (get-tile m screen-coord)
+        :for (screen-x . screen-y) = screen-coord
+        :for glyph = (tile-glyph tl)
+        :for color = (tile-color tl)
+        :unless (zerop (char-code glyph))
+               :do (setf (blt:color) (color-from-name color)
+                      (blt:cell-char screen-x screen-y) glyph)
+        :end
+        :finally (setf (blt:color) (blt:white))))
