@@ -24,7 +24,10 @@
     :initform "No desc")
    (id
     :initarg :id
-    :reader entity/id)))
+    :reader entity/id)
+   (map-id
+    :initarg :map-id
+    :accessor entity/map-id)))
 
 (defmethod pos ((e entity))
   (cons (entity/x e) (entity/y e)))
@@ -38,6 +41,9 @@
   (let* ((cur-pos (pos e))
          (new-pos (translate-coord cur-pos delta)))
     (move-to e (car new-pos) (cdr new-pos))))
+
+(defmethod move-by ((c cons) delta)
+  (translate-coord c delta))
 
 (defmethod display-string ((e entity))
   (decorate (entity/name e) (entity/color e)))

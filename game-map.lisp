@@ -162,23 +162,40 @@
                            :w *viewport-width*
                            :h *viewport-height*))))
 
-(defun index->coord (m idx)
-  (cons (mod idx (game-map/w m))
-        (/ idx (game-map/w m))))
+(defun index->coord (width idx)
+  (cons (mod idx width)
+        (floor idx width)))
 
-(defun coord->index (m coord)
+(defun coord->index (width coord)
   (destructuring-bind (x . y) coord
-    (+ x (* y (game-map/w m)))))
+    (+ x (* y width))))
+
+(defun focus-coord (m)
+  (let ((focus (game-map/focus m)))
+    (typecase focus
+      (cons focus)
+      (t (pos focus)))))
+
+(defun map->screen (m coord)
+  (let* ((center-point (focus-coord m))
+         (x (car coord))
+         (y (cdr coord)))
+    (multiple-value-bind (left top) (cam m center-point)
+      (cons (- x left) (- y top)))))
 
 (defmethod draw ((m game-map))
   (loop :for i below (* *viewport-width* *viewport-height*)
-        :for screen-coord = (index->coord m i)
-        :for tl = (get-tile m screen-coord)
+        :for screen-coord = (index->coord *viewport-width* i)
+        :with vw = (viewport m)
+        :with (px . py) = (map->screen m (focus-coord m))
+        :for tl = (get-tile m (nth i vw))
         :for (screen-x . screen-y) = screen-coord
         :for glyph = (tile-glyph tl)
         :for color = (tile-color tl)
         :unless (zerop (char-code glyph))
-               :do (setf (blt:color) (color-from-name color)
-                      (blt:cell-char screen-x screen-y) glyph)
+          :do (setf (blt:color) (color-from-name color)
+                    (blt:cell-char screen-x screen-y) glyph)
         :end
-        :finally (setf (blt:color) (blt:white))))
+        :finally (setf (blt:color) (blt:yellow) 
+                       (blt:cell-char px py) #\X
+                       (blt:color) (blt:white))))

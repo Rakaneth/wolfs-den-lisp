@@ -9,6 +9,10 @@
   (loop :until (zerop (length *screens*))
         :do (pop-screen)))
 
+(defun print-center (text y width)
+  (let* ((x (floor (- width (length text)) 2)))
+    (blt:print x y text)))
+
 (defgeneric draw (drawable)
   (:documentation "Draw an object to the screen."))
 
@@ -29,7 +33,7 @@
                 (:escape nil)
                 (:close nil)
                 (t (progn
-                     (format t "pressed key")
+                     (format t "pressed key~%")
                      t))))
 
 (defun push-screen (s)
@@ -48,14 +52,16 @@
   (setf (slot-value ts 'id) "title"))
 
 (defmethod draw ((ts title-screen))
-  (blt:print 35 20 "Wolf's Den II: Common Lisp Edition")
-  (blt:print 35 21 "by Rakaneth"))
+  (print-center  "Wolf's Den II: Common Lisp Edition" 20 *screen-width*)
+  (print-center "by Rakaneth" 21 *screen-width*))
 
 (defmethod handle ((ts title-screen))
   (blt:key-case (blt:read)
                 (:escape nil)
                 (:close nil)
-                (t (push-screen (make-instance 'new-game-menu)))))
+                (t (push-screen (make-instance 'new-game-menu 
+                                               :name "new-game"
+                                               :menu-items `("New Game" "Continue"))))))
 
 (defclass main-screen (screen) 
   ((cur-map :initarg :cur-map :accessor main-screen/cur-map)))
@@ -63,7 +69,23 @@
 (defmethod initialize-instance :after ((ms main-screen) &key)
   (setf (slot-value ms 'id) "main"))
 
-(defmethod draw ((ms main-screen)))
+(defmethod handle ((ms main-screen))
+  (let ((player (game-map/focus (main-screen/cur-map ms))))
+    (blt:key-case (blt:read)
+                  (:numpad-8 (move-by player +north+))
+                  (:numpad-9 (move-by player +northeast+))
+                  (:numpad-6 (move-by player +east+))
+                  (:numpad-3 (move-by player +southeast+))
+                  (:numpad-2 (move-by player +south+))
+                  (:numpad-1 (move-by player +southwest+))
+                  (:numpad-4 (move-by player +west+))
+                  (:numpad-7 (move-by player +northwest+))
+                  (:close nil)
+                  (t (format t "Key pressed~%") t))))
+
+
+(defmethod draw ((ms main-screen))
+  (draw (main-screen/cur-map ms)))
 
 (defclass menu (screen) 
   ((items :initarg :menu-items :accessor menu/items)
@@ -76,15 +98,9 @@
 
 (defclass new-game-menu (menu) ())
 
-(defmethod initialize-instance :after ((ngm new-game-menu) &key)
-  (declare (ignore initargs))
-  (setf (menu/items ngm) (list "New Game" "Continue")
-        (menu/name ngm) "new-game")
-  (call-next-method))
-
 (defmethod handle ((ngm new-game-menu))
   (blt:key-case (blt:read)
-                (:escape (pop-screen))
+                (:escape (pop-screen) t)
                 (:return (if (zerop (menu/selected ngm))
                              (progn
                                (clear-screens)
@@ -94,7 +110,9 @@
                                                         :width 100
                                                         :height 30))
                                (push-screen (make-instance 'main-screen 
-                                                           :cur-map (get-map "mines=upper"))))))))
+                                                           :cur-map (get-map "mines-upper")))
+                               (random-walls (get-map "mines-upper"))
+                               t)))))
 
 (defmethod draw ((m menu))
   (let* ((lst (menu/items m))
