@@ -1,6 +1,6 @@
 ;;;; package.lisp
 
 (defpackage #:wolfs-den-lisp
-  (:use #:cl #:cl-pcg))
+  (:use #:cl #:rl-pcg))
 
 

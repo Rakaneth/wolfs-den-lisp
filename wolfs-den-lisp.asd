@@ -6,7 +6,7 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:cl-blt #:cl-pcg)
+  :depends-on (#:cl-blt #:rl-pcg)
   :components ((:file "package")
                (:file "load-blt")
                (:file "config")
