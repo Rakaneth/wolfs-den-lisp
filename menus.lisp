@@ -6,14 +6,13 @@
   (blt:key-case (blt:read)
                 (:escape (pop-screen) t)
                 (:return (if (zerop (menu/selected ngm))
-                             (progn
-                               (clear-screens)
-                               (add-map (make-instance 'game-map 
-                                                        :id "mines-upper"
-                                                        :name "Upper Mines"
-                                                        :width 100
-                                                        :height 30))
-                               (push-screen (make-instance 'main-screen 
-                                                           :cur-map (get-map "mines-upper")))
-                               (random-walls (get-map "mines-upper"))
+                             (let ((start-map (create-map :mines-upper))
+                                   (player (create-creature :keldun :player t))
+                                   (npc (create-creature :wolf :pos '(1 . 2))))
+                               (random-walls start-map)
+                               (add-map start-map)
+                               (add-entity start-map player)
+                               (add-entity start-map npc)
+                               (push-screen (make-instance 'main-screen
+                                                           :cur-map start-map))
                                t)))))

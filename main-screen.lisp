@@ -22,4 +22,7 @@
 
 
 (defmethod draw ((ms main-screen))
-  (draw (main-screen/cur-map ms)))
+  (let ((m (main-screen/cur-map ms)))
+    (draw m)
+    (draw-entities m)))
+

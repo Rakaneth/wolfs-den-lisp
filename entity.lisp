@@ -25,9 +25,10 @@
    (id
     :initarg :id
     :reader entity/id)
-   (map-id
-    :initarg :map-id
-    :accessor entity/map-id)))
+   (player-p
+    :initform nil
+    :accessor entity/player-p
+    :initarg :player)))
 
 (defmethod pos ((e entity))
   (cons (entity/x e) (entity/y e)))

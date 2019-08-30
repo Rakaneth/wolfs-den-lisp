@@ -172,9 +172,9 @@
 
 (defun focus-coord (m)
   (let ((focus (game-map/focus m)))
-    (typecase focus
+    (etypecase focus
       (cons focus)
-      (t (pos focus)))))
+      (entity (pos focus)))))
 
 (defun map->screen (m coord)
   (let* ((center-point (focus-coord m))
@@ -199,3 +199,26 @@
         :finally (setf (blt:color) (blt:yellow) 
                        (blt:cell-char px py) #\X
                        (blt:color) (blt:white))))
+
+(defun on-screen (coord)
+  (destructuring-bind (x . y) coord
+    (and (between-p x 0 (1- *viewport-width*)) 
+         (between-p y 0 (1- *viewport-height*)))))
+
+(defmethod draw-entities ((m game-map))
+  (loop :for e in (game-map/entities m)
+        :for screen-coord = (map->screen m (pos e))
+        :for glyph = (entity/char e)
+        :for color = (entity/color e)
+        :for (x . y) = screen-coord
+        :if (on-screen screen-coord)
+          :do (setf (blt:color) (color-from-name color)
+                    (blt:cell-char x y) glyph)
+        :end
+        :finally (setf (blt:color) (blt:white))))
+
+(defmethod add-entity ((m game-map) (e entity))
+  (pushnew e (game-map/entities m)))
+
+(defmethod remove-entity ((m game-map) (e entity))
+  (setf (game-map/entities m) (remove e (game-map/entities m))))
