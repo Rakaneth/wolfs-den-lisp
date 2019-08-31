@@ -9,10 +9,12 @@
                              (let ((start-map (create-map :mines-upper))
                                    (player (create-creature :keldun :player t))
                                    (npc (create-creature :wolf :pos '(1 . 2))))
+                               (clear-screens)
                                (random-walls start-map)
                                (add-map start-map)
                                (add-entity start-map player)
                                (add-entity start-map npc)
+                               (setf (game-map/focus start-map) player)
                                (push-screen (make-instance 'main-screen
                                                            :cur-map start-map))
                                t)))))

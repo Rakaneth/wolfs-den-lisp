@@ -21,8 +21,8 @@
   (explored nil))
 
 (defun points-list (x-start x-end y-start y-end)
-  (loop :for x from x-start to x-end
-        :nconc (loop :for y from y-start to y-end
+  (loop :for y from y-start to y-end
+        :nconc (loop :for x from x-start to x-end
                      :collect (cons x y))))
 
 (defparameter *null-tile* (make-tile))
@@ -155,7 +155,7 @@
   (setf (tile-explored (get-tile m coord)) t))
 
 (defun viewport (m)
-  (multiple-value-bind (x y) (cam m (game-map/focus m))
+  (multiple-value-bind (x y) (cam m (focus-coord m))
     (points (make-instance 'rect 
                            :x x
                            :y y
