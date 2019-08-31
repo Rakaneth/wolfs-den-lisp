@@ -222,3 +222,16 @@
 
 (defmethod remove-entity ((m game-map) (e entity))
   (setf (game-map/entities m) (remove e (game-map/entities m))))
+
+(defmethod iterate-dungeon ((m game-map))
+  (loop :for c in (points m)
+        :for neis = (adj m c :include-walls t)
+        :for walls = (count-if #'(lambda (n) (blocked-p m n)) neis)
+        :if (>= walls 5)
+          :collect c into make-walls
+        :end
+        :if (< walls 4)
+          :collect c into make-floors
+        :end
+        :finally (dolist (w make-walls) (set-tile m w :wall))
+        :finally (dolist (f make-floors) (set-tile m f :floor))))

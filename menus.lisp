@@ -10,7 +10,7 @@
                                    (player (create-creature :keldun :player t))
                                    (npc (create-creature :wolf :pos '(1 . 2))))
                                (clear-screens)
-                               (random-walls start-map)
+                               (random-walls start-map 50)
                                (add-map start-map)
                                (add-entity start-map player)
                                (add-entity start-map npc)

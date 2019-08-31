@@ -17,6 +17,7 @@
                   (:numpad-1 (move-by player +southwest+))
                   (:numpad-4 (move-by player +west+))
                   (:numpad-7 (move-by player +northwest+))
+                  (:space (iterate-dungeon (main-screen/cur-map ms)) t)
                   (:close nil)
                   (t (format t "Key pressed~%") t))))
 
