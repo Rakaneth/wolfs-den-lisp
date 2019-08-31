@@ -187,7 +187,6 @@
   (loop :for i below (* *viewport-width* *viewport-height*)
         :for screen-coord = (index->coord *viewport-width* i)
         :with vw = (viewport m)
-        :with (px . py) = (map->screen m (focus-coord m))
         :for tl = (get-tile m (nth i vw))
         :for (screen-x . screen-y) = screen-coord
         :for glyph = (tile-glyph tl)
@@ -195,10 +194,7 @@
         :unless (zerop (char-code glyph))
           :do (setf (blt:color) (color-from-name color)
                     (blt:cell-char screen-x screen-y) glyph)
-        :end
-        :finally (setf (blt:color) (blt:yellow) 
-                       (blt:cell-char px py) #\X
-                       (blt:color) (blt:white))))
+        :end))
 
 (defun on-screen (coord)
   (destructuring-bind (x . y) coord
