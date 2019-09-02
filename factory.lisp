@@ -12,6 +12,13 @@
                 (:item '*item-templates*))))
     `(setf (gethash ,item-key ,repo) ,plist-template)))
 
+(defmacro with-repo (repo-key repo-sym &body body)
+  `(let* ((,repo-sym (ecase ,repo-key
+                   (:map *map-templates*)
+                   (:creature *creature-templates*)
+                   (:item *item-templates*))))
+     ,@body))
+
 (defmacro with-template (repo-sym template-id template-sym &body body)
   (let ((repo (ecase repo-sym
                 (:map '*map-templates*)
@@ -41,5 +48,25 @@
                    :y (cdr pos)
                    :player player
                    :tags (getf template :tags))))
+
+(defun prob-table (repo-sym &key tags (search-type :and))
+  (with-repo repo-sym map-repo
+    (loop :for k being each hash-key of map-repo
+          :using (hash-value v)
+          :for weight = (getf v :freq)
+          :when (and weight 
+                     (> weight 0) 
+                     (if (eq search-type :and) 
+                         (subsetp tags (getf v :tags))
+                         (intersection tags (getf v :tags))))
+            :collect (cons k weight)
+          :end)))
+
+(defun random-creature (&key (pos '(0 . 0)) name tags (search-type :and))
+  (create-creature (get-weighted (prob-table :creature 
+                                             :tags tags                            
+                                             :search-type search-type))
+                   :pos pos
+                   :name name))
 
 

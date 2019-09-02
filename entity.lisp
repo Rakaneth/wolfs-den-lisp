@@ -60,3 +60,6 @@
                      (glyph entity/char)) 
         e
       (format stream "~a ~a (~a)" glyph name id))))
+
+(defmethod has-tag ((e entity) tag)
+  (member tag (entity/tags e)))
