@@ -1,11 +1,18 @@
 (in-package #:wolfs-den-lisp)
 
-(define-template :creature :keldun '(:name "Human of Keldun"
+(defparameter +human-tags+ `(:humanoid :human))
+(defparameter +wolf-tags+ `(:wolf :animal))
+
+(define-template :creature :keldun `(:name "Human of Keldun"
                                      :id "keldun-human"
                                      :color "yellow"
-                                     :glyph #\@))
+                                     :glyph #\@
+                                     :freq 5
+                                     :tags ,(copy-list +human-tags+)))
 
-(define-template :creature :wolf '(:name "Wolf"
+(define-template :creature :wolf `(:name "Wolf"
                                    :id "wolf-basic"
                                    :color "sepia"
-                                   :glyph #\W))
+                                   :glyph #\W
+                                   :freq 10
+                                   :tags ,(copy-list +wolf-tags+)))

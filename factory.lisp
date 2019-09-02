@@ -1,3 +1,4 @@
+
 (in-package #:wolfs-den-lisp)
 
 (defvar *creature-templates* (make-hash-table))
@@ -38,6 +39,7 @@
                    :char (getf template :glyph)
                    :x (car pos)
                    :y (cdr pos)
-                   :player player)))
+                   :player player
+                   :tags (getf template :tags))))
 
 

@@ -28,7 +28,11 @@
    (player-p
     :initform nil
     :accessor entity/player-p
-    :initarg :player)))
+    :initarg :player)
+   (tags
+    :initform nil
+    :accessor entity/tags
+    :initarg :tags)))
 
 (defmethod pos ((e entity))
   (cons (entity/x e) (entity/y e)))
@@ -49,9 +53,10 @@
 (defmethod display-string ((e entity))
   (decorate (entity/name e) (entity/color e)))
 
-
-(defmethod draw ((e entity))
-  (with-slots (x y char color) e
-    (setf (blt:color) (color-from-name (entity/color e))
-          (blt:cell-char x y) char))
-  (setf (blt:color) (blt:white)))
+(defmethod print-object ((e entity) stream)
+  (print-unreadable-object (e stream :type t)
+    (with-accessors ((name entity/name)
+                     (id entity/id)
+                     (glyph entity/char)) 
+        e
+      (format stream "~a ~a (~a)" glyph name id))))
