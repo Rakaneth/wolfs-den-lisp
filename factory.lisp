@@ -47,11 +47,19 @@
 
 (defun create-map (template-id)
   (with-template :map template-id template
-    (make-instance 'game-map
-                   :id (getf template :id)
-                   :name (getf template :name)
-                   :width (getf template :width)
-                   :height (getf template :height))))
+    (let ((base-map (make-instance 'game-map
+                                   :id (getf template :id)
+                                   :name (getf template :name)
+                                   :width (getf template :width)
+                                   :height (getf template :height)))
+          (map-type (or (getf template :type) :cell)))
+      (case map-type
+        (:cell 
+         (random-walls base-map)
+         (dotimes (_ 6) (iterate-dungeon base-map))
+         (wall-border base-map)
+         base-map)
+        (t (error (format nil "~A algo not implemented yet." map-type)))))))
 
 (defun apply-ego! (entity ego-key)
   (with-template :ego ego-key template
@@ -80,7 +88,7 @@
         (when -color
           (setf color -color))
         (when -hardness
-          (setf (getf -stats :hardness) -hardness))
+          (set-stat! entity :hardness -hardness))
         (when (and -staff (has-tag entity :staff))
           (mod-stats! entity -staff))
         (when (and -axe (has-tag entity :axe))

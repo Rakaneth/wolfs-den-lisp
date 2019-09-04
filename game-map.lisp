@@ -105,13 +105,24 @@
 
 (defun all-walls (m)
   (loop :for pos in (points m)
-        :do (set-tile m pos :wall)))
+        :do (set-tile m pos :wall)
+        :finally (return m)))
 
 (defun random-walls (m &optional (chance 50))
   (loop :for pos in (points m)
         :do (if (getf  (roll 100 :target (- 100 chance)) :success)
                 (set-tile m pos :wall)
-                (set-tile m pos :floor))))
+                (set-tile m pos :floor))
+        :finally (return m)))
+
+(defun wall-border (m)
+  (let ((map-rect (make-instance 'rect 
+                                 :x 0 
+                                 :y 0 
+                                 :w (game-map/w m) 
+                                 :h (game-map/h m))))
+    (dolist (pt (perimeter map-rect) map-rect)
+      (set-tile m pt :wall))))
 
 (defmethod in-bounds-p ((m game-map) coord)
   (and (between-p (car coord) 0 (game-map/x-edge m))

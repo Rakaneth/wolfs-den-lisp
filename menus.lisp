@@ -4,9 +4,8 @@
 
 (defun new-game! ()
   (let ((start-map (create-map :mines-upper))
-        (player (create-creature :keldun :player t))
+        (player (create-creature :keldun :player t :pos '(15 . 27)))
         (npc (create-creature :wolf :pos '(1 . 2))))
-    (random-walls start-map)
     (add-map start-map)
     (add-entity start-map player)
     (add-entity start-map npc)
