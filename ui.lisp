@@ -13,7 +13,7 @@
   (let* ((x (floor (- width (length text)) 2)))
     (blt:print x y text)))
 
-(defgeneric draw (drawable)
+(defgeneric draw (drawable &key)
   (:documentation "Draw an object to the screen."))
 
 (defgeneric handle (screen)
@@ -55,7 +55,7 @@
   (setf (slot-value m 'id) 
         (format nil "~A-menu" (menu/name m))))
 
-(defmethod draw ((m menu))
+(defmethod draw ((m menu) &key)
   (let* ((lst (menu/items m))
          (max-string (reduce (lambda (a b)
                                (max (length a) (length b)))

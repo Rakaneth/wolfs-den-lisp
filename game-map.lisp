@@ -39,14 +39,18 @@
   ((x1 :initarg :x1 :accessor rect/x1)
    (x2 :initarg :x2 :accessor rect/x2)
    (y1 :initarg :y1 :accessor rect/y1)
-   (y2 :initarg :y2 :accessor rect/y2)))
+   (y2 :initarg :y2 :accessor rect/y2)
+   (width :reader rect/w)
+   (height :reader rect/h)))
 
 (defmethod initialize-instance :after ((r rect) &key x y w h)
-  (with-slots (x1 x2 y1 y2) r
+  (with-slots (x1 x2 y1 y2 width height) r
     (setf x1 x
           y1 y
           x2 (1- (+ x w))
-          y2 (1- (+ y h)))))
+          y2 (1- (+ y h))
+          width w
+          height h)))
 
 (defmethod intersect-p ((r1 rect) (r2 rect))
   (cond
@@ -67,6 +71,20 @@
 
 (defmethod perimeter ((r rect))
   (set-difference (points r) (interior r) :test #'equal))
+
+(defmethod print-text ((r rect) x y text)
+  (with-accessors ((x1 rect/x1)
+                   (y1 rect/y1)
+                   (w rect/w)
+                   (h rect/h)) r
+    (blt:print (+ x x1) (+ y y1) text :width (- w 2) :height (- h 2))))
+
+(defmethod draw ((r rect))
+  (with-accessors ((x1 rect/x1)
+                   (y1 rect/y1)
+                   (w rect/w)
+                   (h rect/h)) r
+    (blt:draw-box x1 y1 w h)))
 
 (defclass game-map ()
   ((width :initarg :width :reader game-map/w)
