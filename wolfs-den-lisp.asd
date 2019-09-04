@@ -18,6 +18,7 @@
                (:file "creatures")
                (:file "maps")
                (:file "items")
+               (:file "materials")
                (:file "swatch")
                (:file "ui")
                (:file "title-screen")
