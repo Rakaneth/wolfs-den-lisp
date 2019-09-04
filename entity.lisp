@@ -34,6 +34,11 @@
     :accessor entity/tags
     :initarg :tags)))
 
+(defmethod initialize-instance :after ((e entity) &rest initargs)
+  (declare (ignore initargs))
+  (with-slots ((id id)) e
+    (setf id (format nil "~a-~a" id (get-uuid)))))
+
 (defmethod pos ((e entity))
   (cons (entity/x e) (entity/y e)))
 

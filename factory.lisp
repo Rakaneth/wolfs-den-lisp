@@ -12,6 +12,15 @@
                 (:item '*item-templates*))))
     `(setf (gethash ,item-key ,repo) ,plist-template)))
 
+(defmacro define-map (item-key plist-template)
+  `(define-template :map ,item-key ,plist-template))
+
+(defmacro define-creature (item-key plist-template)
+  `(define-template :creature ,item-key ,plist-template))
+
+(defmacro define-item (item-key plist-template)
+  `(define-template :item ,item-key ,plist-template))
+
 (defmacro with-repo (repo-key repo-sym &body body)
   `(let* ((,repo-sym (ecase ,repo-key
                    (:map *map-templates*)
@@ -49,18 +58,26 @@
                    :player player
                    :tags (getf template :tags))))
 
-(defun prob-table (repo-sym &key tags (search-type :and))
+
+
+
+;;; Untiered entities appear in all searches
+(defun prob-table (repo-sym &key tags tier (search-type :and))
   (with-repo repo-sym map-repo
     (loop :for k being each hash-key of map-repo
           :using (hash-value v)
           :for weight = (getf v :freq)
+          :for v-tier = (getf v :tier)
+          :for v-tags = (getf v :tags)
           :when (and weight 
                      (> weight 0) 
                      (if (eq search-type :and) 
-                         (subsetp tags (getf v :tags))
-                         (intersection tags (getf v :tags))))
+                         (subsetp tags v-tags)
+                         (intersection tags v-tags))
+                     (or (not tier) (>= (or v-tier 6) tier)))
             :collect (cons k weight)
           :end)))
+
 
 (defun random-creature (&key (pos '(0 . 0)) name tags (search-type :and))
   (create-creature (get-weighted (prob-table :creature 
