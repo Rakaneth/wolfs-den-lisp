@@ -3,3 +3,6 @@
 
 #lisp build artifacts
 *.fasl
+
+#game log file
+wolfs-den-log.log

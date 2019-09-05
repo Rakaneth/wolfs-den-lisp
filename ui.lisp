@@ -23,17 +23,17 @@
   ((id :initarg :id :reader screen/id)))
 
 (defmethod enter ((s screen))
-  (format t "Entered ~a screen.~%" (screen/id s)))
+  (debug-print "SCREEN" (format nil "Entered ~a screen." (screen/id s))))
 
 (defmethod exit ((s screen))
-  (format t "Exited ~a screen.~%" (screen/id s)))
+  (debug-print "SCREEN" (format nil "Exited ~a screen." (screen/id s))))
 
 (defmethod handle ((s screen))
   (blt:key-case (blt:read)
                 (:escape nil)
                 (:close nil)
                 (t (progn
-                     (format t "pressed key~%")
+                     (debug-print "SCREEN" (format nil "Pressed key on screen ~a" (screen/id s)))
                      t))))
 
 (defun push-screen (s)

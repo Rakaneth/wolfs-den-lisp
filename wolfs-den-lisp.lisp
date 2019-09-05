@@ -16,14 +16,15 @@
   (blt:set "window.size = ~Ax~A" *screen-width* *screen-height*)
   (blt:set "window.title = Wolf's Den II: Common Lisp Edition"))
 
-(defun new-game ()
+(defun init-game ()
   (reset-screens)
   (push-screen (make-instance 'title-screen)))
 
-(defun main()
+(defun main ()
   (blt:with-terminal
+    (setf *game-turn* 0)
     (config)
-    (new-game)
+    (init-game)
     (loop :for top = (cur-screen)
           :do (render)
               (unless (handle top) (return)))

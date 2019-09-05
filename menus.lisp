@@ -9,7 +9,8 @@
     (add-map start-map)
     (add-entity start-map player)
     (add-entity start-map npc)
-    (setf (game-map/focus start-map) player)))
+    (setf (game-map/focus start-map) player)
+    (setf *game-turn* 1)))
 
 (defmethod handle ((ngm new-game-menu))
   (blt:key-case (blt:read)
