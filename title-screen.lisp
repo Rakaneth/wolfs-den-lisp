@@ -5,7 +5,7 @@
 (defmethod initialize-instance :after ((ts title-screen) &key)
   (setf (slot-value ts 'id) "title"))
 
-(defmethod draw ((ts title-screen))
+(defmethod draw ((ts title-screen) &key)
   (print-center  "Wolf's Den II: Common Lisp Edition" 20 *screen-width*)
   (print-center "by Rakaneth" 21 *screen-width*))
 

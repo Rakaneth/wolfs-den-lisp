@@ -1,7 +1,7 @@
 (in-package #:wolfs-den-lisp)
 
 (defvar *maps* (make-hash-table :test 'equal))
-(defparameter *viewport-width* 50)
+(defparameter *viewport-width* 60)
 (defparameter *viewport-height* 30)
 
 (defun add-map (map)
@@ -79,12 +79,14 @@
                    (h rect/h)) r
     (blt:print (+ x x1) (+ y y1) text :width (- w 2) :height (- h 2))))
 
-(defmethod draw ((r rect))
+(defmethod draw ((r rect) &key caption)
   (with-accessors ((x1 rect/x1)
                    (y1 rect/y1)
                    (w rect/w)
                    (h rect/h)) r
-    (blt:draw-box x1 y1 w h)))
+    (blt:draw-box x1 y1 w h)
+    (when caption
+      (print-text r 1 0 caption))))
 
 (defclass game-map ()
   ((width :initarg :width :reader game-map/w)
@@ -212,7 +214,7 @@
     (multiple-value-bind (left top) (cam m center-point)
       (cons (- x left) (- y top)))))
 
-(defmethod draw ((m game-map))
+(defmethod draw ((m game-map) &key)
   (loop :for i below (* *viewport-width* *viewport-height*)
         :for screen-coord = (index->coord *viewport-width* i)
         :with vw = (viewport m)
