@@ -98,7 +98,8 @@
    (y-edge :reader game-map/y-edge)
    (focus :initform (cons 0 0) :accessor game-map/focus)
    (entities :initform `() :accessor game-map/entities)
-   (floors :accessor game-map/floors)))
+   (floors :accessor game-map/floors)
+   (regions :initform nil :accessor game-map/regions)))
 
 (defun cam (m center-point)
   (let ((x (car center-point))
@@ -170,7 +171,7 @@
             (vector-push coord floors))
           (delete coord floors :test #'equal)))))
 
-(defmethod adj ((m game-map) coord &key (include-walls nil))
+(defmethod adj ((m game-map) coord &key (include-walls nil) &allow-other-keys)
   (let* ((x (car coord))
          (y (cdr coord))
          (xe (game-map/x-edge m))
@@ -281,3 +282,28 @@
         :end
         :finally (dolist (w make-walls) (set-tile m w :wall))
         :finally (dolist (f make-floors) (set-tile m f :floor))))
+
+(defmethod add-to-region ((m game-map) coord region)
+  (push (getf (game-map/regions m) region) coord))
+
+(defmethod get-region ((m game-map) region)
+  (getf (game-map/regions m) region))
+
+(defmethod flood-fill ((m game-map) coord region)
+  (loop :with bucket = (make-array)
+        :while bucket
+        :for next = (pop bucket)
+        :for n = (translate-coord next +north+)
+        :for s = (translate-coord next +south+)
+        :for e = (translate-coord next +east+)
+        :for w = (translate-coord next +west+)
+        :collecting next into checked 
+        :unless (or (find next checked :test #'equal) (blocked-p m next))
+          :do (push n (cdr (last bucket))) 
+          :and :do (push s (cdr (last bucket))) 
+          :and :do (push w (cdr (last bucket))) 
+          :and :do (push e (cdr (last bucket))) 
+          :and :do (add-to-region m next region)
+        :end
+        :do (debug-print "MAP" "Flood fill: bucket ~A, checked ~A" bucket checked)
+        :finally (return (get-region m region))))
