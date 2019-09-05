@@ -23,6 +23,9 @@
     (delete fst (queue-vec q) :count 1 :test #'equal)
     fst))
 
+(defun peek (q)
+  (elt (queue-vec q) 0))
+
 (defmethod print-object ((q queue) stream)
   (print-unreadable-object (q stream :type t)
     (format stream "~A" (queue-vec q))))
