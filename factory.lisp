@@ -53,6 +53,7 @@
                                    :width (getf template :width)
                                    :height (getf template :height)))
           (map-type (or (getf template :type) :cell)))
+      (debug-print "MAP" "Creating map ~a" template-id)
       (case map-type
         (:cell 
          (random-walls base-map)

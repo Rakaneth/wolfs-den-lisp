@@ -12,11 +12,12 @@
 
 (defvar *game-turn* 0)
 
-(defun debug-print (topic text)
+(defun debug-print (topic &rest args)
   (when *debug-mode*
       (with-open-file (f *log-path* 
                          :direction :output
                          :if-exists :append
                          :if-does-not-exist :create)
-        (format f "~a: [~a] ~a~%" *game-turn* topic text))))
+        (format f "~a: [~a] ~a~%" *game-turn* topic 
+                (apply #'format (cons nil args))))))
 

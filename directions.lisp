@@ -13,3 +13,9 @@
   (cons (+ (car coord) (car delta)) 
         (+ (cdr coord) (cdr delta))))
 
+(defun distance (a b)
+  (destructuring-bind (x1 . y1) a
+    (destructuring-bind (x2 . y2) b
+      (max (abs (- y2 y1)) 
+           (abs (- x2 x1))))))
+

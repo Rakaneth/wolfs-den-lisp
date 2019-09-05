@@ -29,8 +29,12 @@
                   (:numpad-1 (move-by player +southwest+))
                   (:numpad-4 (move-by player +west+))
                   (:numpad-7 (move-by player +northwest+))
+                  (:space (move-entity player 
+                                       (random-floor (main-screen/cur-map ms)
+                                                     :center-point '(30 . 15)
+                                                     :radius 3)))
                   (:close nil)
-                  (t (debug-print "SCREEN" (format nil "Key pressed")) t))))
+                  (t (debug-print "SCREEN" "Key pressed") t))))
 
 (defmethod draw-ui ((ms main-screen) &key)
   (with-accessors ((msgs main-screen/msgs)

@@ -97,7 +97,8 @@
    (x-edge :reader game-map/x-edge)
    (y-edge :reader game-map/y-edge)
    (focus :initform (cons 0 0) :accessor game-map/focus)
-   (entities :initform `() :accessor game-map/entities)))
+   (entities :initform `() :accessor game-map/entities)
+   (floors :accessor game-map/floors)))
 
 (defun cam (m center-point)
   (let ((x (car center-point))
@@ -112,12 +113,15 @@
 
 (defmethod initialize-instance :after ((map game-map) &rest initargs)
   (declare (ignore initargs))
-  (with-slots (tiles x-edge y-edge width height) map
+  (with-slots (tiles x-edge y-edge width height floors) map
     (setf tiles (make-array (list width height) 
                             :element-type 'tile 
                             :initial-element (copy-tile *null-tile*))
           x-edge (1- width)
-          y-edge (1- height))))
+          y-edge (1- height))
+    (setf floors (make-array (* width height)
+                             :fill-pointer 0
+                             :adjustable t))))
 
 (defmethod points ((m game-map))
   (with-slots (x-edge y-edge) m
@@ -154,10 +158,17 @@
       *null-tile*))
 
 (defmethod set-tile ((m game-map) coord tile-key)
-  (let* ((-tile (get-tile m coord))
-         (explored (tile-explored -tile)))
-    (setf (aref (game-map/tiles m) (car coord) (cdr coord)) 
-          (create-tile :tile-type tile-key :explored explored))))
+  (with-accessors ((floors game-map/floors)
+                   (tiles game-map/tiles)
+                   (id game-map/id)) m
+    (let* ((-tile (get-tile m coord))
+           (explored (tile-explored -tile)))
+      (setf (aref tiles (car coord) (cdr coord)) 
+            (create-tile :tile-type tile-key :explored explored))
+      (if (eql tile-key :floor)
+          (unless (find coord floors :test #'equal)
+            (vector-push coord floors))
+          (delete coord floors :test #'equal)))))
 
 (defmethod adj ((m game-map) coord &key (include-walls nil))
   (let* ((x (car coord))
@@ -172,6 +183,14 @@
          (test (lambda (p) (and (not (equal `(,x . ,y) p))
                                 (or include-walls (not (blocked-p m p)))))))
     (remove-if-not test cands)))
+
+(defmethod random-floor ((m game-map) &key (radius 1) center-point)
+  (if center-point
+    (let ((cands (remove-if-not #'(lambda (c) 
+                                    (<= (distance c center-point) radius)) 
+                                (game-map/floors m))))
+      (get-random-element cands))
+    (get-random-element (game-map/floors m))))
 
 (defmethod blocked-p ((m game-map) coord)
   (tile-block-path (get-tile m coord)))

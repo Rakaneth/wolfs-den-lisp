@@ -68,15 +68,18 @@
 (defmethod pos ((e entity))
   (cons (entity/x e) (entity/y e)))
 
-(defmethod move-to ((e entity) x y)
+(defmethod move-to ((e entity) &key x y &allow-other-keys)
   (setf (entity/x e) x)
   (setf (entity/y e) y)
   (pos e))
 
+(defun move-entity (e coord)
+  (move-to e :x (car coord) :y (cdr coord)))
+
 (defmethod move-by ((e entity) delta)
   (let* ((cur-pos (pos e))
          (new-pos (translate-coord cur-pos delta)))
-    (move-to e (car new-pos) (cdr new-pos))))
+    (move-to e :x (car new-pos) :y (cdr new-pos))))
 
 (defmethod move-by ((c cons) delta)
   (translate-coord c delta))
