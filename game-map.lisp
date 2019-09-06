@@ -284,7 +284,7 @@
         :finally (dolist (f make-floors) (set-tile m f :floor))))
 
 (defmethod add-to-region ((m game-map) coord region)
-  (if (get-region m region)
+  (if (show-region m region)
     (push coord (getf (game-map/regions m) region))
     (setf (getf (game-map/regions m) region) (list coord))))
 
@@ -316,11 +316,18 @@
           :end
           :finally (return (show-region m region)))))
 
+(defmethod clear-regions ((m game-map))
+  (setf (game-map/regions m) nil))
+
 (defmethod find-regions ((m game-map))
+  (clear-regions m)
   (loop :for pt in (points m)
-        :with idx = -1
-        :unless (get-region m pt)
-          :do (flood-fill m pt (incf idx))
+        :with idx = 0
+        :unless (or (get-region m pt)
+                    (blocked-p m pt))
+          :do (debug-print "MAP" "Getting regions on ~A" pt)
+          :and :do (flood-fill m pt idx)
+          :and :do (incf idx)
         :end
         :finally (return (game-map/regions m))))
 
