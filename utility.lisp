@@ -15,7 +15,13 @@
 (defstruct queue
   (vec (make-array 10 :adjustable t :fill-pointer 0)))
 
-(defun enqueue (q item)
+(defun create-queue (&rest args)
+  (loop :with q = (make-queue) 
+        :for item in args
+        :do (enqueue item q)
+        :finally (return q)))
+
+(defun enqueue (item q)
   (vector-push-extend item (queue-vec q)))
 
 (defun dequeue (q)
@@ -25,6 +31,12 @@
 
 (defun peek (q)
   (elt (queue-vec q) 0))
+
+(defun queue-empty-p (q)
+  (zerop (queue-length q)))
+
+(defun queue-length (q)
+  (length (queue-vec q)))
 
 (defmethod print-object ((q queue) stream)
   (print-unreadable-object (q stream :type t)

@@ -284,26 +284,44 @@
         :finally (dolist (f make-floors) (set-tile m f :floor))))
 
 (defmethod add-to-region ((m game-map) coord region)
-  (push (getf (game-map/regions m) region) coord))
+  (if (get-region m region)
+    (push coord (getf (game-map/regions m) region))
+    (setf (getf (game-map/regions m) region) (list coord))))
 
-(defmethod get-region ((m game-map) region)
+(defmethod show-region ((m game-map) region)
   (getf (game-map/regions m) region))
 
+(defmethod get-region ((m game-map) coord)
+  (loop :for (region pts) on (game-map/regions m) by #'cddr
+        :when (find coord pts :test #'equal)
+          :do (return region)
+        :end))
+
 (defmethod flood-fill ((m game-map) coord region)
-  (loop :with bucket = (make-array)
-        :while bucket
-        :for next = (pop bucket)
-        :for n = (translate-coord next +north+)
-        :for s = (translate-coord next +south+)
-        :for e = (translate-coord next +east+)
-        :for w = (translate-coord next +west+)
-        :collecting next into checked 
-        :unless (or (find next checked :test #'equal) (blocked-p m next))
-          :do (push n (cdr (last bucket))) 
-          :and :do (push s (cdr (last bucket))) 
-          :and :do (push w (cdr (last bucket))) 
-          :and :do (push e (cdr (last bucket))) 
-          :and :do (add-to-region m next region)
+  (let ((bucket (create-queue coord)))
+    (loop :while (not (queue-empty-p bucket))
+          :for next = (dequeue bucket)
+          :for n = (translate-coord next +north+)
+          :for s = (translate-coord next +south+)
+          :for e = (translate-coord next +east+)
+          :for w = (translate-coord next +west+)
+          :unless (or (find next checked :test #'equal) 
+                      (blocked-p m next))
+            :collecting next into checked
+            :and :do (enqueue e bucket) 
+            :and :do (enqueue s bucket) 
+            :and :do (enqueue n bucket) 
+            :and :do (enqueue w bucket) 
+            :and :do (add-to-region m next region)
+          :end
+          :finally (return (show-region m region)))))
+
+(defmethod find-regions ((m game-map))
+  (loop :for pt in (points m)
+        :with idx = -1
+        :unless (get-region m pt)
+          :do (flood-fill m pt (incf idx))
         :end
-        :do (debug-print "MAP" "Flood fill: bucket ~A, checked ~A" bucket checked)
-        :finally (return (get-region m region))))
+        :finally (return (game-map/regions m))))
+
+
