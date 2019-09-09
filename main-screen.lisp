@@ -19,7 +19,8 @@
   (setf (slot-value ms 'id) "main"))
 
 (defmethod handle ((ms main-screen))
-  (let ((player (game-map/focus (main-screen/cur-map ms))))
+  (let* ((m (main-screen/cur-map ms))
+         (player (game-map/focus m)))
     (blt:key-case (blt:read)
                   (:numpad-8 (move-by player +north+))
                   (:numpad-9 (move-by player +northeast+))
@@ -29,10 +30,11 @@
                   (:numpad-1 (move-by player +southwest+))
                   (:numpad-4 (move-by player +west+))
                   (:numpad-7 (move-by player +northwest+))
-                  (:space (move-entity player 
-                                       (random-floor (main-screen/cur-map ms)
-                                                     :center-point '(30 . 15)
-                                                     :radius 3)))
+                  (:space (draw-path (find-path (pos player)
+                                                '(30 . 15)
+                                                m) 
+                                     m) 
+                          t)
                   (:close nil)
                   (t (debug-print "SCREEN" "Key pressed") t))))
 

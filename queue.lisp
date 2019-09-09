@@ -20,9 +20,9 @@
     (dolist (item items q)
       (enqueue item q))))
 
-(defun create-pri-queue (lst &optional pred)
+(defun create-pri-queue (&key initial-items pred)
   (let ((q (make-instance 'pri-queue :pred (or pred #'<))))
-     (loop :for (key . item) in lst
+     (loop :for (key . item) in initial-items
            ;;:do (format t "(~a, ~a)~%" key item)
            :do (enqueue (make-instance 'pri-node :weight key :data item) q)
            :finally (return q))))
@@ -111,6 +111,10 @@
 (defmethod enqueue (item (q pri-queue))
   (vector-push-extend item (queue/vec q))
   (percup (1- (queue/length q)) q))
+
+(defun priority-enqueue (weight item pq)
+  (enqueue (make-instance 'pri-node :weight weight :data item) pq)
+  pq)
 
 (defmethod dequeue ((q queue))
   (with-accessors ((vec queue/vec)) q

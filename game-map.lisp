@@ -13,81 +13,6 @@
 (defun get-map (map-id)
   (gethash map-id *maps*))
 
-(defstruct tile 
-  (glyph #\Nul)
-  (color "transparent")
-  (block-sight t)
-  (block-path t)
-  (explored nil))
-
-(defun points-list (x-start x-end y-start y-end)
-  (loop :for y from y-start to y-end
-        :nconc (loop :for x from x-start to x-end
-                     :collect (cons x y))))
-
-(defparameter *null-tile* (make-tile))
-
-(defun create-tile (&key tile-type (color "white") (explored nil))
-  (case tile-type
-    (:floor (make-tile :glyph #\. :color color :block-sight nil :block-path nil :explored explored ))
-    (:wall (make-tile :glyph #\# :color color :explored explored))
-    (:stairs-up (make-tile :glyph #\< :color "yellow" :explored explored))
-    (:stairs-down (make-tile :glyph #\> :color "yellow" :explored explored))
-    (t (make-tile))))
-
-(defclass rect ()
-  ((x1 :initarg :x1 :accessor rect/x1)
-   (x2 :initarg :x2 :accessor rect/x2)
-   (y1 :initarg :y1 :accessor rect/y1)
-   (y2 :initarg :y2 :accessor rect/y2)
-   (width :reader rect/w)
-   (height :reader rect/h)))
-
-(defmethod initialize-instance :after ((r rect) &key x y w h)
-  (with-slots (x1 x2 y1 y2 width height) r
-    (setf x1 x
-          y1 y
-          x2 (1- (+ x w))
-          y2 (1- (+ y h))
-          width w
-          height h)))
-
-(defmethod intersect-p ((r1 rect) (r2 rect))
-  (cond
-    ((< (rect/x2 r1) (rect/x1 r2)) nil)
-    ((< (rect/x2 r2) (rect/x1 r1)) nil)
-    ((< (rect/y2 r1) (rect/y1 r2)) nil)
-    ((< (rect/y2 r2) (rect/y1 r1)) nil)
-    (t t)))
-
-(defmethod points ((r rect))
-  (points-list (rect/x1 r) (rect/x2 r) (rect/y1 r) (rect/y2 r)))
-
-(defmethod interior ((r rect))
-  (points-list (1+ (rect/x1 r))
-               (1- (rect/x2 r))
-               (1+ (rect/y1 r))
-               (1- (rect/y2 r))))
-
-(defmethod perimeter ((r rect))
-  (set-difference (points r) (interior r) :test #'equal))
-
-(defmethod print-text ((r rect) x y text)
-  (with-accessors ((x1 rect/x1)
-                   (y1 rect/y1)
-                   (w rect/w)
-                   (h rect/h)) r
-    (blt:print (+ x x1) (+ y y1) text :width (- w 2) :height (- h 2))))
-
-(defmethod draw ((r rect) &key caption)
-  (with-accessors ((x1 rect/x1)
-                   (y1 rect/y1)
-                   (w rect/w)
-                   (h rect/h)) r
-    (blt:draw-box x1 y1 w h)
-    (when caption
-      (print-text r 1 0 caption))))
-
 (defclass game-map ()
   ((width :initarg :width :reader game-map/w)
    (height :initarg :height :reader game-map/h)
@@ -187,11 +112,11 @@
 
 (defmethod random-floor ((m game-map) &key (radius 1) center-point)
   (if center-point
-    (let ((cands (remove-if-not #'(lambda (c) 
-                                    (<= (distance c center-point) radius)) 
-                                (game-map/floors m))))
-      (get-random-element cands))
-    (get-random-element (game-map/floors m))))
+      (let ((cands (remove-if-not #'(lambda (c) 
+                                      (<= (distance c center-point) radius)) 
+                                  (game-map/floors m))))
+        (get-random-element cands))
+      (get-random-element (game-map/floors m))))
 
 (defmethod blocked-p ((m game-map) coord)
   (tile-block-path (get-tile m coord)))
@@ -285,8 +210,8 @@
 
 (defmethod add-to-region ((m game-map) coord region)
   (if (show-region m region)
-    (push coord (getf (game-map/regions m) region))
-    (setf (getf (game-map/regions m) region) (list coord))))
+      (push coord (getf (game-map/regions m) region))
+      (setf (getf (game-map/regions m) region) (list coord))))
 
 (defmethod show-region ((m game-map) region)
   (getf (game-map/regions m) region))
@@ -330,5 +255,47 @@
           :and :do (incf idx)
         :end
         :finally (return (game-map/regions m))))
+
+;;Dijkstra's
+(defmethod find-path (start dest (m game-map) &key cost-fn)
+  (loop :with q = (create-pri-queue :initial-items (list `(0 . ,start)))
+        :with w = (game-map/w m)
+        :with came-from = (list (coord->index w start) :start)
+        :with cost-so-far = (make-hash-table :test #'equal)
+        :initially (setf (gethash start cost-so-far) 0)
+        :until (queue-empty-p q)
+        :for current = (dequeue q)
+        :for pt = (pri-node/data current)
+        :for dist = (pri-node/weight current)
+        :for current-idx = (coord->index w pt)
+        :when (equal pt dest)
+          :do (return (path-from came-from dest w))
+        :end
+        :do (loop :for nei in (adj m pt :include-walls t)
+                  :for nei-idx = (coord->index w nei)
+                  :for cur-cost = (if cost-fn
+                                      (funcall cost-fn pt nei)
+                                      1)
+                  :for new-cost = (+ (gethash pt cost-so-far) cur-cost)
+                  :if (or (not (gethash nei cost-so-far)) 
+                          (< new-cost (gethash nei cost-so-far)))
+                    :do (setf (gethash nei cost-so-far) new-cost)
+                    :and :do (priority-enqueue new-cost nei q)
+                    :and :do (setf (getf came-from nei-idx) pt)
+                  :end)))
+
+(defun path-from (path-table dest w)
+  (loop :with next = dest
+        :with path = (list dest)      
+        :until (eq :start next)
+        :for n = (getf path-table (coord->index w next))
+        :do (push n path)
+        :do (setf next n)
+        :finally (return (cdr path))))
+
+;; debugging paths
+(defmethod draw-path (path (m game-map))
+  (dolist (step path)
+    (set-tile m step :marked)))
 
 

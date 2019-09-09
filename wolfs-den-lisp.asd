@@ -14,6 +14,8 @@
                (:file "queue")
                (:file "entity")
                (:file "directions")
+               (:file "tile")
+               (:file "rect")
                (:file "game-map")
                (:file "factory")
                (:file "creatures")
