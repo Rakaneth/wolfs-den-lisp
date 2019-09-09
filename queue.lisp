@@ -15,6 +15,11 @@
   (print-unreadable-object (n stream :type t)
     (format stream "Key ~d Data ~A" (pri-node/weight n) (pri-node/data n))))
 
+(defun create-queue (&rest items)
+  (let ((q (make-instance 'queue)))
+    (dolist (item items q)
+      (enqueue item q))))
+
 (defun create-pri-queue (lst &optional pred)
   (let ((q (make-instance 'pri-queue :pred (or pred #'<))))
      (loop :for (key . item) in lst
@@ -29,6 +34,11 @@
 (defgeneric peek (q))
 
 (defgeneric queue/length (q))
+
+(defgeneric queue-empty-p (q))
+
+(defmethod queue-empty-p ((q queue))
+  (zerop (length (queue/vec q))))
 
 (defun bheap-parent (n)
   (max (floor (1- n) 2) 0))
