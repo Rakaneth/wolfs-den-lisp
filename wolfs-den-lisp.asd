@@ -11,6 +11,7 @@
                (:file "load-blt")
                (:file "config")
                (:file "utility")
+               (:file "queue")
                (:file "entity")
                (:file "directions")
                (:file "game-map")
