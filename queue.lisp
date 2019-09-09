@@ -23,7 +23,7 @@
 (defun create-pri-queue (lst &optional pred)
   (let ((q (make-instance 'pri-queue :pred (or pred #'<))))
      (loop :for (key . item) in lst
-           :do (format t "(~a, ~a)~%" key item)
+           ;;:do (format t "(~a, ~a)~%" key item)
            :do (enqueue (make-instance 'pri-node :weight key :data item) q)
            :finally (return q))))
 
@@ -82,7 +82,7 @@
                           ((and rkey (not lkey) (funcall pred rkey ikey)) r)
                           ((and lkey (not rkey) (funcall pred lkey ikey)) l)
                           (t i))
-        :do (format t "i: ~a l: ~a r: ~a s: ~a~%" i l r smallest)
+        ;; :do (format t "i: ~a l: ~a r: ~a s: ~a~%" i l r smallest)
         :until (= smallest i)
         :do (swap! smallest i q)
         :do (setf i smallest)
@@ -104,7 +104,7 @@
         :for pkey = (get-key p q)
         :for ikey = (get-key i q)
         :while (and (plusp i) (funcall pred ikey pkey))
-        :do (format t "swapping ~a and ~a~%" (get-node i q) (get-node p q))
+        ;; :do (format t "swapping ~a and ~a~%" (get-node i q) (get-node p q))
         :do (swap! i p q)
         :do (setf i p)))
 
@@ -123,7 +123,8 @@
     (let* ((result (elt vec 0)))
       (swap! 0 (1- (queue/length q)) q)
       (vector-pop vec)
-      (heapify! 0 q)
+      (unless (queue-empty-p q)  
+        (heapify! 0 q))
       result)))
 
 (defmethod peek ((q queue))
