@@ -32,21 +32,35 @@
                   (:numpad-7 (move-by player +northwest+))
                   (:space (draw-path (find-path (pos player)
                                                 '(30 . 15)
-                                                m) 
+                                                m
+                                                :cost-fn #'(lambda (pt) 
+                                                             (unless (blocked-p m pt) 1))) 
                                      m) 
                           t)
                   (:close nil)
                   (t (debug-print "SCREEN" "Key pressed") t))))
 
+(defmethod draw-stats ((ms main-screen))
+  (with-accessors ((stats main-screen/stats)
+                   (m main-screen/cur-map)) 
+      ms
+    (let ((player (game-map/focus m)))
+      (draw stats :caption "Stats")
+      (print-text stats 1 1 (display-string player))
+      (print-text stats 1 2 (format nil "~A (~d, ~d)" 
+                                    (game-map/name m) 
+                                    (entity/x player) 
+                                    (entity/y player))))))
+
 (defmethod draw-ui ((ms main-screen) &key)
   (with-accessors ((msgs main-screen/msgs)
                    (skls main-screen/skls)
-                   (info main-screen/info)
-                   (stats main-screen/stats)) ms
+                   (info main-screen/info)) 
+      ms
     (draw msgs :caption "Messages")
     (draw skls :caption "Skills")
     (draw info :caption "Info")
-    (draw stats :caption "Stats")))
+    (draw-stats ms)))
 
 
 (defmethod draw ((ms main-screen) &key)
