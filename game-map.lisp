@@ -3,6 +3,7 @@
 (defvar *maps* (make-hash-table :test 'equal))
 (defparameter *viewport-width* 60)
 (defparameter *viewport-height* 30)
+(defparameter *region-min* 30)
 
 (defun add-map (map)
   (setf (gethash (game-map/id map) *maps*) map))
@@ -24,7 +25,8 @@
    (focus :initform (cons 0 0) :accessor game-map/focus)
    (entities :initform `() :accessor game-map/entities)
    (floors :accessor game-map/floors)
-   (regions :initform nil :accessor game-map/regions)))
+   (regions :initform nil :accessor game-map/regions)
+   (marked :initform nil :accessor game-map/marked)))
 
 (defun cam (m center-point)
   (let ((x (car center-point))
@@ -90,13 +92,13 @@
     (let* ((-tile (get-tile m coord))
            (explored (tile-explored -tile)))
       (setf (aref tiles (car coord) (cdr coord)) 
-            (create-tile :tile-type tile-key :explored explored))
+            (create-tile :t-type tile-key :explored explored))
       (if (eql tile-key :floor)
           (unless (find coord floors :test #'equal)
             (vector-push coord floors))
           (delete coord floors :test #'equal)))))
 
-(defmethod adj ((m game-map) coord &key (include-walls nil) &allow-other-keys)
+(defmethod adj ((m game-map) coord &key include-walls four-way)
   (let* ((x (car coord))
          (y (cdr coord))
          (xe (game-map/x-edge m))
@@ -107,7 +109,12 @@
          (y2 (clamp (1+ y) 0 ye))
          (cands (points-list x1 x2 y1 y2))
          (test (lambda (p) (and (not (equal coord p))
-                                (or include-walls (not (blocked-p m p)))))))
+                                (or include-walls (not (blocked-p m p)))
+                                (or (not four-way) (member p `((,x . ,y1)
+                                                               (,x . ,y2)
+                                                               (,x1 . ,y)
+                                                               (,x2 . ,y))
+                                                           :test #'equal))))))
     (remove-if-not test cands)))
 
 (defmethod random-floor ((m game-map) &key (radius 1) center-point)
@@ -179,21 +186,35 @@
 
 (defmethod draw-entities ((m game-map))
   (loop :for e in (game-map/entities m)
-        :for screen-coord = (map->screen m (pos e))
         :for glyph = (entity/char e)
         :for color = (entity/color e)
-        :for (x . y) = screen-coord
-        :if (on-screen screen-coord)
-          :do (setf (blt:color) (color-from-name color)
-                    (blt:cell-char x y) glyph)
-        :end
-        :finally (setf (blt:color) (blt:white))))
+        :for pt = (pos e)
+        :do (draw-on-map m pt glyph color)))
+
+(defmethod draw-marked ((m game-map))
+  ;; (debug-print "MAP-DRAWING: MARKED" "~A" (game-map/marked m))
+  (dolist (mk (game-map/marked m))
+    (draw-on-map m mk #\* "red")))
+
+(defmethod draw-on-map ((m game-map) coord glyph color)
+  (let ((screen-coord  (map->screen m coord)))
+    (when (on-screen screen-coord)
+      (setf (blt:color) (color-from-name color)
+            (blt:cell-char (car screen-coord) (cdr screen-coord)) glyph
+            (blt:color) (blt:white)))))
 
 (defmethod add-entity ((m game-map) (e entity))
   (pushnew e (game-map/entities m)))
 
-(defmethod remove-entity ((m game-map) (e entity))
-  (setf (game-map/entities m) (remove e (game-map/entities m))))
+(defmacro by-id (fn seq id-sym)
+  `(,fn #'(lambda (e) (search ,id-sym (entity/id e)))
+        ,seq))
+
+(defmethod remove-entity ((m game-map) eid)
+  (setf (game-map/entities m) (by-id remove-if (game-map/entities m) eid)))
+
+(defmethod get-entity ((m game-map) eid)
+  (by-id find-if (game-map/entities m) eid))
 
 (defmethod iterate-dungeon ((m game-map))
   (loop :for c in (points m)
@@ -256,8 +277,8 @@
         :end
         :finally (return (game-map/regions m))))
 
-;;Dijkstra's
-(defmethod find-path (start dest (m game-map) &key cost-fn)
+;;A*
+(defmethod find-path (start dest (m game-map) &key cost-fn four-way)
   (loop :with q = (create-pri-queue :initial-items (list `(0 . ,start)))
         :with came-from = (make-hash-table :test #'equal)
         :with cost-so-far = (make-hash-table :test #'equal)
@@ -267,20 +288,29 @@
         :for current = (dequeue q)
         :for pt = (pri-node/data current)
         :for dist = (pri-node/weight current)
+        :do (debug-print "PATHFINDING" "Visiting ~a, pri=~a" pt dist)
         :when (equal pt dest)
-          :do (return (path-from came-from dest))
+          :do (debug-print "PATHFINDING" "Path from ~A to ~A:~% ~A"
+                           start dest (path-from came-from dest))
+          :and :do (return (path-from came-from dest))
         :end
-        :do (loop :for nei in (adj m pt :include-walls t)
+        :do (loop :with neis = (adj m pt :include-walls t :four-way four-way)
+                  :for nei in neis
                   :for cur-cost = (if cost-fn
                                       (funcall cost-fn nei)
                                       1)
                   :for new-cost = (and cur-cost  
                                        (+ (gethash pt cost-so-far) cur-cost))
+                  :do (debug-print "PATHFINDING" "Neighbors: ~a" neis)
                   :if (and new-cost 
                            (or (not (nth-value 1 (gethash nei cost-so-far))) 
                                (< new-cost (gethash nei cost-so-far))))
-                    :do (setf (gethash nei cost-so-far) new-cost)
-                    :and :do (priority-enqueue (+ new-cost (distance nei dest)) 
+                    :do (debug-print 
+                         "PATHFINDING" "Looking at ~a - new-cost ~a listed-cost ~a cur-cost ~a" 
+                         nei new-cost (gethash nei cost-so-far) cur-cost)
+                    :and :do (setf (gethash nei cost-so-far) new-cost)
+                    :and :do (priority-enqueue (+ new-cost 
+                                                  (euclid-distance nei dest)) 
                                                nei q)
                     :and :do (setf (gethash nei came-from) pt)
                   :end)))
@@ -292,11 +322,47 @@
         :for n = (gethash next path-table)
         :do (push n path)
         :do (setf next n)
-        :finally (return (cdr path))))
+        :finally (return (cddr path))))
 
 ;; debugging paths
 (defmethod draw-path (path (m game-map))
   (dolist (step path)
-    (set-tile m step :marked)))
+    (mark m step)))
+
+(defmethod get-player-entity ((m game-map))
+  (find-if #'(lambda (e) (entity/player-p e)) (game-map/entities m)))
+
+(defmethod near-wall-p ((m game-map) coord)
+  (and (some #'(lambda (pt) (blocked-p m pt)) 
+             (adj m coord :include-walls t :four-way t))
+       (floor-p m coord)))
+
+(defmethod door-support-p ((m game-map) coord)
+  (or ()))
+
+(defmacro is-tile (mp coord type)
+  `(eq (tile-type (get-tile ,mp ,coord)) ,type))
+
+(defmethod wall-p ((m game-map) coord)
+  (is-tile m coord :wall))
+
+(defmethod floor-p ((m game-map) coord)
+  (is-tile m coord :floor))
+
+(defmethod fill-caves ((m game-map))
+  (with-accessors ((regions game-map/regions)) m
+    (loop :for (item region) :on regions :by #'cddr
+          :if (<= (length region) *region-min*)
+            :do (dolist (pt region)
+                  (set-tile m pt :wall))
+            :and :do (remf regions item)
+          :end
+          :finally (return regions))))
+
+(defmethod mark ((m game-map) coord)
+  (pushnew coord (game-map/marked m)))
+
+(defmethod clear-marks ((m game-map))
+  (setf (game-map/marked m) nil))
 
 

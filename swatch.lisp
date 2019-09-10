@@ -18,6 +18,7 @@
 (define-color "wood" (blt:rgba 191 171 143))
 (define-color "undead" (blt:rgba 220 115 255))
 (define-color "timberwolf" *sepia*)
+(define-color "red" (blt:red))
 
 (defun color-from-name (color-string)
   (or (gethash color-string *swatch*) 

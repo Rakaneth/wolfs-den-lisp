@@ -19,3 +19,15 @@
       (max (abs (- y2 y1)) 
            (abs (- x2 x1))))))
 
+(defun euclid-distance (a b)
+  (let* ((x1 (car a))
+         (y1 (cdr a))
+         (x2 (car b))
+         (y2 (cdr b))
+         (dx (- x2 x1))
+         (dy (- y2 y1)))
+    (sqrt (+ (* dy dy) (* dx dx)))))
+
+(defun adj-p (a b)
+  (= (distance a b) 1))
+

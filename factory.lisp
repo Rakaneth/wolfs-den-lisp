@@ -1,4 +1,3 @@
-
 (in-package #:wolfs-den-lisp)
 
 (defvar *creature-templates* (make-hash-table))
@@ -59,6 +58,8 @@
          (random-walls base-map)
          (dotimes (_ 6) (iterate-dungeon base-map))
          (wall-border base-map)
+         (find-regions base-map)
+         (fill-caves base-map)
          base-map)
         (t (error (format nil "~A algo not implemented yet." map-type)))))))
 
@@ -152,10 +153,10 @@
 
 (defun search-repo (repo-sym &key tags tier (search-type :and) (tier-test #'=))
   (loop :for (k . _) in (prob-table repo-sym 
-                                 :tags tags 
-                                 :tier tier
-                                 :search-type search-type
-                                 :tier-test tier-test)
+                                    :tags tags 
+                                    :tier tier
+                                    :search-type search-type
+                                    :tier-test tier-test)
         :collect k))
 
 
@@ -165,7 +166,3 @@
                                              :search-type search-type))
                    :pos pos
                    :name name))
-
-
-
-
