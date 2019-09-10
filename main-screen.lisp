@@ -31,7 +31,7 @@
                   (:numpad-4 (move-by player +west+))
                   (:numpad-7 (move-by player +northwest+))
                   (:space (draw-path (find-path (pos player)
-                                                '(30 . 15)
+                                                (random-floor m)
                                                 m
                                                 :cost-fn #'(lambda (pt) 
                                                              (unless (blocked-p m pt) 1))) 

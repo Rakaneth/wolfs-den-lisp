@@ -106,7 +106,7 @@
          (y1 (clamp (1- y) 0 ye))
          (y2 (clamp (1+ y) 0 ye))
          (cands (points-list x1 x2 y1 y2))
-         (test (lambda (p) (and (not (equal `(,x . ,y) p))
+         (test (lambda (p) (and (not (equal coord p))
                                 (or include-walls (not (blocked-p m p)))))))
     (remove-if-not test cands)))
 
@@ -270,17 +270,18 @@
         :when (equal pt dest)
           :do (return (path-from came-from dest))
         :end
-        :do (loop :for nei in (shuffle! (adj m pt :include-walls t))
+        :do (loop :for nei in (adj m pt :include-walls t)
                   :for cur-cost = (if cost-fn
                                       (funcall cost-fn nei)
                                       1)
                   :for new-cost = (and cur-cost  
                                        (+ (gethash pt cost-so-far) cur-cost))
                   :if (and new-cost 
-                           (or (not (gethash nei cost-so-far)) 
+                           (or (not (nth-value 1 (gethash nei cost-so-far))) 
                                (< new-cost (gethash nei cost-so-far))))
                     :do (setf (gethash nei cost-so-far) new-cost)
-                    :and :do (priority-enqueue new-cost nei q)
+                    :and :do (priority-enqueue (+ new-cost (distance nei dest)) 
+                                               nei q)
                     :and :do (setf (gethash nei came-from) pt)
                   :end)))
 
