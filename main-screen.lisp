@@ -35,7 +35,7 @@
                                                     (near-wall-p m pt))
                                        (cond
                                          ((wall-p m pt) 1)
-                                         ((near-wall-p m pt) 2)
+                                         ((near-wall-p m pt) 10)
                                          (t nil)))
                           :four-way t)))
     (draw-path path m)

@@ -28,6 +28,12 @@
          (dy (- y2 y1)))
     (sqrt (+ (* dy dy) (* dx dx)))))
 
+(defun manhattan-distance (a b)
+  (destructuring-bind (x1 . y1) a
+    (destructuring-bind (x2 . y2) b
+      (+ (abs (- x2 x1))
+         (abs (- y2 y1))))))
+
 (defun adj-p (a b)
   (= (distance a b) 1))
 

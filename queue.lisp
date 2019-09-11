@@ -58,10 +58,12 @@
   `(elt (queue/vec ,q) ,idx))
 
 (defmethod get-key (idx (q pri-queue))
-  (pri-node/weight (get-node idx q)))
+  (and (< idx (queue/length q)) 
+       (pri-node/weight (get-node idx q))))
 
 (defmethod get-data (idx (q pri-queue))
-  (pri-node/data (get-node idx q)))
+  (and (< idx (queue/length q)) 
+       (pri-node/data (get-node idx q))))
 
 (defmethod heapify! (idx (q pri-queue))
   (loop :with len = (queue/length q)
@@ -93,6 +95,29 @@
   (setf (pri-node/weight (get-node idx q)) val)
   (percup idx q)
   q)
+
+(defmethod get-idx (data (q pri-queue))
+  (let ((node (find-if #'(lambda (el) 
+                           (equal (pri-node/data el) data))
+                       (queue/vec q))))
+    (if node (search (list node) (queue/vec q)))))
+
+(defmethod check-heap (idx (q pri-queue))
+  (let* ((l (bheap-left idx))
+        (r (bheap-right idx))
+        (lkey (get-key l q))
+        (rkey (get-key r q))
+        (ikey (get-key idx q))
+        (pred (pri-queue/pred q)))
+    (cond
+      ((not (or lkey rkey)) t)
+      ((not lkey) (funcall pred ikey rkey))
+      ((not rkey) (funcall pred ikey lkey))
+      (t (and (funcall pred ikey lkey) 
+              (funcall pred ikey rkey)
+              (check-heap l q)
+              (check-heap r q))))))
+
 
 (defmethod enqueue (item (q queue))
   (vector-push-extend item (queue/vec q)))

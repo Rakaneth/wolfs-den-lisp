@@ -277,43 +277,37 @@
         :end
         :finally (return (game-map/regions m))))
 
-;;A*
+;; A* pathfinding
 (defmethod find-path (start dest (m game-map) &key cost-fn four-way)
-  (loop :with q = (create-pri-queue :initial-items (list `(0 . ,start)))
+  (loop :with q = (create-pri-queue)
         :with came-from = (make-hash-table :test #'equal)
         :with cost-so-far = (make-hash-table :test #'equal)
           :initially (setf (gethash start came-from) :start)
           :initially (setf (gethash start cost-so-far) 0)
+          :initially (priority-enqueue 0 start q)
         :until (queue-empty-p q)
-        :for current = (dequeue q)
-        :for pt = (pri-node/data current)
-        :for dist = (pri-node/weight current)
-        :do (debug-print "PATHFINDING" "Visiting ~a, pri=~a" pt dist)
-        :when (equal pt dest)
-          :do (debug-print "PATHFINDING" "Path from ~A to ~A:~% ~A"
-                           start dest (path-from came-from dest))
-          :and :do (return (path-from came-from dest))
+        :for current = (pri-node/data (dequeue q))
+        :when (equal current dest)
+          :do (return (path-from came-from dest))
         :end
-        :do (loop :with neis = (adj m pt :include-walls t :four-way four-way)
+        :do (loop :with neis = (adj m current :include-walls t 
+                                              :four-way four-way)
                   :for nei in neis
-                  :for cur-cost = (if cost-fn
-                                      (funcall cost-fn nei)
-                                      1)
-                  :for new-cost = (and cur-cost  
-                                       (+ (gethash pt cost-so-far) cur-cost))
-                  :do (debug-print "PATHFINDING" "Neighbors: ~a" neis)
-                  :if (and new-cost 
-                           (or (not (nth-value 1 (gethash nei cost-so-far))) 
-                               (< new-cost (gethash nei cost-so-far))))
-                    :do (debug-print 
-                         "PATHFINDING" "Looking at ~a - new-cost ~a listed-cost ~a cur-cost ~a" 
-                         nei new-cost (gethash nei cost-so-far) cur-cost)
-                    :and :do (setf (gethash nei cost-so-far) new-cost)
-                    :and :do (priority-enqueue (+ new-cost 
-                                                  (euclid-distance nei dest)) 
-                                               nei q)
-                    :and :do (setf (gethash nei came-from) pt)
+                  :for cost = (if cost-fn (funcall cost-fn nei) 1)
+                  :for g = (and cost (+ cost (gethash current cost-so-far)))
+                  :for h = (and g (manhattan-distance nei dest))
+                  :for f = (and h (+ g h))
+                  :for nei-idx = (get-idx nei q)
+                  :if (and f
+                           (or (not (nth-value 1 (gethash nei cost-so-far)))
+                               (< g (gethash nei cost-so-far))))
+                    :do (setf (gethash nei cost-so-far) g
+                              (gethash nei came-from) current)
+                    :and :do (if nei-idx
+                                 (decrease-key nei-idx f q)
+                                 (priority-enqueue f nei q))
                   :end)))
+
 
 (defun path-from (path-table dest)
   (loop :with next = dest
