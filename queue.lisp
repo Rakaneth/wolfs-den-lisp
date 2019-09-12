@@ -99,11 +99,11 @@
 
 (defmethod check-heap (idx (q pri-queue))
   (let* ((l (bheap-left idx))
-        (r (bheap-right idx))
-        (lkey (get-key l q))
-        (rkey (get-key r q))
-        (ikey (get-key idx q))
-        (pred (pri-queue/pred q)))
+         (r (bheap-right idx))
+         (lkey (get-key l q))
+         (rkey (get-key r q))
+         (ikey (get-key idx q))
+         (pred (pri-queue/pred q)))
     (cond
       ((not (or lkey rkey)) t)
       ((not lkey) (funcall pred ikey rkey))

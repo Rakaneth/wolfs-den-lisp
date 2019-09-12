@@ -324,6 +324,8 @@
                                  (priority-enqueue f nei q))
                   :end)))
 
+(defmethod frontier ((m game-map) region)
+  (remove-if-not #'(lambda (pt) (near-wall-p m pt)) region))
 
 (defun path-from (path-table dest)
   (loop :with next = dest
