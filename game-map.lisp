@@ -177,8 +177,7 @@
         :for glyph = (tile-glyph tl)
         :for color = (tile-color tl)
         :unless (zerop (char-code glyph))
-          :do (setf (blt:color) (color-from-name color)
-                    (blt:cell-char screen-x screen-y) glyph)
+          :do (put-char screen-coord glyph color)
         :end))
 
 (defun on-screen (coord)
@@ -201,9 +200,7 @@
 (defmethod draw-on-map ((m game-map) coord glyph color)
   (let ((screen-coord  (map->screen m coord)))
     (when (on-screen screen-coord)
-      (setf (blt:color) (color-from-name color)
-            (blt:cell-char (car screen-coord) (cdr screen-coord)) glyph
-            (blt:color) (blt:white)))))
+      (put-char screen-coord glyph color))))
 
 (defmethod add-entity ((m game-map) (e entity))
   (pushnew e (game-map/entities m)))

@@ -60,7 +60,7 @@
                   (:numpad-7 (move-by player +northwest+))
                   (:space (toggle-target-mode ms :r 7) t)
                   (:p (if target (draw-path-to-target ms) t))
-                  (:c (clear-marks m) t)
+                  (:c (clear-marks m) (clear-targeting ms) t)
                   (:close nil)
                   (t (debug-print "SCREEN" "Key pressed") t))))
 
