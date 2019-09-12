@@ -66,16 +66,37 @@
 
 (defmethod draw-stats ((ms main-screen))
   (with-accessors ((stats main-screen/stats)
-                   (m main-screen/cur-map)) 
+                   (m main-screen/cur-map)
+                   (targeting main-screen/target-mode)) 
       ms
     (let ((player (game-map/focus m)))
       (draw stats :caption "Stats")
       (print-text stats 1 1 (display-string player))
-      (print-text stats 1 2 (format nil "~A (~d, ~d)" 
-                                    (game-map/name m) 
-                                    (entity/x player) 
-                                    (entity/y player)))
-      (print-text stats 1 3 (format nil "Target: ~@[~a~]" (main-screen/target ms))))))
+      (print-text stats 1 2 
+                  "~A (~d, ~d)" 
+                  (game-map/name m) 
+                  (entity/x player) 
+                  (entity/y player))
+      (print-text stats 1 3 "Target: ~@[~a~]" (main-screen/target ms))
+      (unless targeting
+        (print-text stats 1 4 "Str: ~3,'0d Stm: ~3,'0d Spd: ~3,'0d" 
+                    (get-stat player :str) 
+                    (get-stat player :stam)
+                    (get-stat player :spd))
+        (print-text stats 1 5 "Skl: ~3,'0d Sag: ~3,'0d Smt: ~3,'0d"
+                    (get-stat player :skl)
+                    (get-stat player :sag)
+                    (get-stat player :smt))
+        (print-text stats 1 7 "Atp: ~3,'0d Dfp: ~3,'0d Tou: ~3,'0d" 
+                    (get-stat player :atp)
+                    (get-stat player :dfp)
+                    (get-stat player :tou))
+        (print-text stats 1 8 "Res: ~3,'0d Wil: ~3,'0d Pwr: ~3,'0d"
+                    (get-stat player :res)
+                    (get-stat player :wil)
+                    (get-stat player :pwr))
+        (print-text stats 1 10 "Dmg: ~a" (get-stat player :dmg))
+        (print-text stats 1 11 "Money: ~d" (get-stat player :money))))))
 
 (defmethod draw-ui ((ms main-screen) &key)
   (with-accessors ((msgs main-screen/msgs)

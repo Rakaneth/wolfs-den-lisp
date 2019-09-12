@@ -37,12 +37,12 @@
 (defmethod perimeter ((r rect))
   (set-difference (points r) (interior r) :test #'equal))
 
-(defmethod print-text ((r rect) x y text)
+(defmethod print-text ((r rect) x y text &rest args)
   (with-accessors ((x1 rect/x1)
                    (y1 rect/y1)
                    (w rect/w)
                    (h rect/h)) r
-    (blt:print (+ x x1) (+ y y1) text :width (- w 2) :height (- h 2))))
+    (blt:print (+ x x1) (+ y y1) (apply #'format (cons nil (cons text args))) :width (- w 2) :height (- h 2))))
 
 (defmethod draw ((r rect) &key caption)
   (with-accessors ((x1 rect/x1)

@@ -21,3 +21,10 @@
         (format f "~a: [~a] ~a~%" *game-turn* topic 
                 (apply #'format (cons nil args))))))
 
+;;generic put-char macro for blt
+
+(defmacro put-char (pt glyph color)
+  `(setf (blt:color) (color-from-name ,color)
+         (blt:cell-char (car ,pt) (cdr ,pt)) ,glyph
+         (blt:color) (blt:white)))
+

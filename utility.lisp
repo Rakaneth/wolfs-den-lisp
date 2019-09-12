@@ -28,6 +28,3 @@
 
 (defun min-by (lst &key key)
   (compare-by lst :key (or key #'identity) :test #'<))
-
-
-

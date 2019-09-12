@@ -13,10 +13,7 @@
   (let* ((x (floor (- width (length text)) 2)))
     (blt:print x y text)))
 
-(defmacro put-char (pt glyph color)
-  `(setf (blt:color) (color-from-name ,color)
-         (blt:cell-char (car ,pt) (cdr ,pt)) ,glyph
-         (blt:color) (blt:white)))
+
 
 (defgeneric draw (drawable &key)
   (:documentation "Draw an object to the screen."))
