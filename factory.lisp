@@ -44,12 +44,7 @@
          (error (format nil "No template ~a in ~a templates" ,template-id ,repo-sym)))
        ,@body)))
 
-(defmethod %connect-fn ((m game-map))
-  (lambda (pt)
-    (cond
-      ((wall-p m pt) 1)
-      ((near-wall-p m pt) 10)
-      (t nil))))
+
 
 (defun create-map (template-id)
   (with-template :map template-id template
@@ -67,19 +62,7 @@
          (wall-border base-map)
          (find-regions base-map)
          (fill-caves base-map)
-         (loop :for (reg-id region) :on (game-map/regions base-map) :by #'cddr
-               :collect (frontier base-map region) :into regions
-               :finally (reduce #'(lambda (ra rb)
-                                    (let* ((pa (get-random-element ra))
-                                           (pb (get-random-element rb))
-                                           (fn (%connect-fn base-map))
-                                           (path (find-path pa pb base-map
-                                                            :four-way t
-                                                            :cost-fn fn)))
-                                      (dolist (p path rb)
-                                        (set-tile base-map p :floor)))) 
-                                regions)
-               :finally (return base-map)))
+         (connect-regions base-map))
         (t (error (format nil "~A algo not implemented yet." map-type)))))))
 
 
@@ -89,7 +72,8 @@
     (with-accessors ((name entity/name)
                      (tags entity/tags)
                      (color entity/color)
-                     (stats entity/stats)) entity
+                     (stats entity/stats)) 
+        entity
       (let* ((-name (getf template :name))
              (-color (getf template :color))
              (-suffix (getf template :suffix))
@@ -143,7 +127,8 @@
                                   :y (cdr pos)
                                   :player player
                                   :e-type :creature
-                                  :tags (getf template :tags)))
+                                  :tags (getf template :tags)
+                                  :layer (if player 4 3)))
            (t-stat (getf template :stats)))
       (loop :for -stat in '(:str :stam :spd :skl :sag :smt)
             :for t-stat-v = (getf t-stat -stat)

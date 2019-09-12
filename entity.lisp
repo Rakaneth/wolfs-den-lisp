@@ -56,13 +56,21 @@
     :accessor entity/inventory)
    (money
     :initform 0
-    :accessor entity/money)))
+    :accessor entity/money)
+   (layer
+    :initform 1
+    :accessor entity/layer)
+   (equipped-p
+    :initform nil
+    :accessor entity/equipped-p)))
 
 
-(defmethod initialize-instance :after ((e entity) &key e-type)
+(defmethod initialize-instance :after ((e entity) &key e-type (layer 1))
   (with-slots ((id id)
-               (tags tags)) e
-    (setf id (format nil "~a-~a" id (get-uuid)))
+               (tags tags)
+               (-layer layer)) e
+    (setf id (format nil "~a-~a" id (get-uuid))
+          -layer layer)
     (push e-type tags)))
     
 (defmethod pos ((e entity))

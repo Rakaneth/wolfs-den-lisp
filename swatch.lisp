@@ -19,6 +19,11 @@
 (define-color "undead" (blt:rgba 220 115 255))
 (define-color "timberwolf" *sepia*)
 (define-color "red" (blt:red))
+(define-color "oak" (blt:rgba 191 171 143 192))
+(define-color "iron" (blt:rgba 150 150 150))
+(define-color "steel" (blt:rgba 183 180 177))
+(define-color "bone" (blt:rgba 223 223 223))
+(define-color "blackiron" (blt:rgba 95 0 191))
 
 (defun color-from-name (color-string)
   (or (gethash color-string *swatch*) 

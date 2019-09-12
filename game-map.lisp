@@ -26,7 +26,9 @@
    (entities :initform `() :accessor game-map/entities)
    (floors :accessor game-map/floors)
    (regions :initform nil :accessor game-map/regions)
-   (marked :initform nil :accessor game-map/marked)))
+   (marked :initform nil :accessor game-map/marked)
+   (wall-color :initarg :wall-color :accessor game-map/wall-color)
+   (floor-color :initarg :floor-color :accessor game-map/floor-color)))
 
 (defun cam (m center-point)
   (let ((x (car center-point))
@@ -185,7 +187,7 @@
          (between-p y 0 (1- *viewport-height*)))))
 
 (defmethod draw-entities ((m game-map))
-  (loop :for e in (game-map/entities m)
+  (loop :for e in (sort (copy-seq (game-map/entities m)) #'< :key #'entity/layer)
         :for glyph = (entity/char e)
         :for color = (entity/color e)
         :for pt = (pos e)
@@ -352,6 +354,13 @@
 (defmethod door-support-p ((m game-map) coord)
   (or ()))
 
+(defmethod perimeter-p ((m game-map) coord)
+  (destructuring-bind (x . y) coord
+    (or (zerop x)
+        (zerop y)
+        (= (game-map/x-edge m) x)
+        (= (game-map/y-edge m) y))))
+
 (defmacro is-tile (mp coord type)
   `(eq (tile-type (get-tile ,mp ,coord)) ,type))
 
@@ -377,4 +386,26 @@
 (defmethod clear-marks ((m game-map))
   (setf (game-map/marked m) nil))
 
+(defmethod %connect-fn ((m game-map))
+  (lambda (pt)
+    (cond
+      ((perimeter-p m pt) (debug-print "PATHFINDING-CAVES" "Excluding ~a, on perimeter" pt) nil)
+      ((wall-p m pt) 1)
+      ((near-wall-p m pt) 10)
+      (t (debug-print "PATHFINDING-CAVES" "Excluding ~a, not a wall or near a wall" pt) nil))))
+
+(defmethod connect-regions ((m game-map))
+  (loop :for (reg-id region) :on (game-map/regions m) :by #'cddr
+        :collect (frontier m region) :into regions
+        :finally (reduce #'(lambda (ra rb)
+                             (let* ((pa (get-random-element ra))
+                                    (pb (get-random-element rb))
+                                    (fn (%connect-fn m))
+                                    (path (find-path pa pb m
+                                                     :four-way t
+                                                     :cost-fn fn)))
+                               (dolist (p path rb)
+                                 (set-tile m p :floor)))) 
+                         regions)
+        :finally (return m)))
 
