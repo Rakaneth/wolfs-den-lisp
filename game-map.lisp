@@ -282,11 +282,20 @@
   (loop :with q = (create-pri-queue)
         :with came-from = (make-hash-table :test #'equal)
         :with cost-so-far = (make-hash-table :test #'equal)
+        :with debug-topic = (format nil "PATHFINDING: ~a to ~a" start dest)
+        :with closed-list
           :initially (setf (gethash start came-from) :start)
           :initially (setf (gethash start cost-so-far) 0)
           :initially (priority-enqueue 0 start q)
+          :initially (debug-print debug-topic "START")
         :until (queue-empty-p q)
-        :for current = (pri-node/data (dequeue q))
+        :for current-q-node = (dequeue q)
+        :for current = (pri-node/data current-q-node)
+        :for current-f = (pri-node/weight current-q-node)
+        :do (push current closed-list)
+        :do (debug-print debug-topic "Examining current: ~a (~d)" 
+                         current current-f)
+        :do (debug-print debug-topic "F-values: ~a" (get-keys q))
         :when (equal current dest)
           :do (return (path-from came-from dest))
         :end
@@ -299,10 +308,17 @@
                   :for f = (and h (+ g h))
                   :for nei-idx = (get-idx nei q)
                   :if (and f
+                           (not (member nei closed-list :test #'equal))
                            (or (not (nth-value 1 (gethash nei cost-so-far)))
                                (< g (gethash nei cost-so-far))))
                     :do (setf (gethash nei cost-so-far) g
                               (gethash nei came-from) current)
+                    :and :do (if nei-idx
+                                 (debug-print debug-topic 
+                                              "better path found for ~a: ~d -> ~d"
+                                              nei (get-key nei-idx q) f)
+                                 (debug-print debug-topic
+                                              "Node ~a (score ~d)  is new" nei f))
                     :and :do (if nei-idx
                                  (decrease-key nei-idx f q)
                                  (priority-enqueue f nei q))

@@ -28,11 +28,6 @@
                           (main-screen/target ms)
                           m
                           :cost-fn #'(lambda (pt)
-                                       (debug-print "PATHFINDING-MAIN" 
-                                                    "~a wall-p: ~a near-wall-p: ~a"
-                                                    pt
-                                                    (wall-p m pt)
-                                                    (near-wall-p m pt))
                                        (cond
                                          ((wall-p m pt) 1)
                                          ((near-wall-p m pt) 10)

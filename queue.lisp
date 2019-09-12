@@ -12,7 +12,7 @@
    (data :accessor pri-node/data :initarg :data)))
 
 (defmethod print-object ((n pri-node) stream)
-  (print-unreadable-object (n stream :type t)
+  (print-unreadable-object (n stream)
     (format stream "Key ~d Data ~A" (pri-node/weight n) (pri-node/data n))))
 
 (defun create-queue (&rest items)
@@ -66,29 +66,24 @@
        (pri-node/data (get-node idx q))))
 
 (defmethod heapify! (idx (q pri-queue))
-  (loop :with len = (queue/length q)
-        :with pred = (pri-queue/pred q)
+  (loop :with pred = (pri-queue/pred q)
         :with i = idx
         :for l = (bheap-left i)
         :for r = (bheap-right i)
-        :for lkey = (if (< l len) (get-key l q))
-        :for rkey = (if (< r len) (get-key r q))
+        :for lkey = (get-key l q)
+        :for rkey = (get-key r q)
         :for ikey = (get-key i q)
-        :for smallest = (cond 
-                          ((and lkey rkey
-                                (funcall pred lkey ikey) 
-                                (funcall pred lkey rkey)) l)
-                          ((and lkey rkey
-                                (funcall pred rkey ikey)
-                                (funcall pred rkey lkey)) r)
-                          ((and rkey (not lkey) (funcall pred rkey ikey)) r)
-                          ((and lkey (not rkey) (funcall pred lkey ikey)) l)
-                          (t i))
         ;; :do (format t "i: ~a l: ~a r: ~a s: ~a~%" i l r smallest)
-        :until (= smallest i)
+        :for smallkey = (compare-by (list lkey rkey ikey) :test pred)
+        :for smallest = (cond
+                          ((and lkey (= smallkey lkey)) l)
+                          ((and rkey (= smallkey rkey)) r)
+                          (t i))
+        :if (= smallest i)
+          :do (return q)
+        :end
         :do (swap! smallest i q)
-        :do (setf i smallest)
-        :finally (return q)))
+        :do (setf i smallest)))
 
 
 (defmethod decrease-key (idx val (q pri-queue))
@@ -128,7 +123,7 @@
         :for p = (bheap-parent i)
         :for pkey = (get-key p q)
         :for ikey = (get-key i q)
-        :while (and (plusp i) (funcall pred ikey pkey))
+        :until (or (zerop i) (funcall pred pkey ikey))
         ;; :do (format t "swapping ~a and ~a~%" (get-node i q) (get-node p q))
         :do (swap! i p q)
         :do (setf i p)))
@@ -162,8 +157,12 @@
 (defmethod queue/length ((q queue))
   (length (queue/vec q)))
 
+(defmethod get-keys ((q pri-queue))
+  (loop :for node :across (queue/vec q)
+        :collect (pri-node/weight node)))
+
 (defmethod print-object ((q queue) stream)
   (print-unreadable-object (q stream :type t)
-    (format stream "~d ~a" (queue/length q) (queue/vec q))))
+    (format stream "Length: ~d ~a" (queue/length q) (queue/vec q))))
 
 
