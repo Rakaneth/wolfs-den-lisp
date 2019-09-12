@@ -116,6 +116,7 @@
 (defmethod typeof-entity ((e entity))
   (cond ((has-tag e :creature) :creature)
         ((has-tag e :item) :item)
+        ((has-tag e :cursor) :cursor)
         (t :unknown)))
 
 (defmethod creature-p ((e entity))

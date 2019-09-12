@@ -409,3 +409,12 @@
                          regions)
         :finally (return m)))
 
+(defmethod radius ((m game-map) r center-point &key rad-type include-walls)
+  (let ((fn (case rad-type
+              (:euclid #'euclid-distance)
+              (:manhattan #'manhattan-distance)
+              (t #'distance))))
+    (remove-if-not #'(lambda (pt)
+                       (and (<= (funcall fn center-point pt) r)
+                            (or include-walls (not (blocked-p m pt)))))
+                   (points m))))

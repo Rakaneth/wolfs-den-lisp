@@ -36,4 +36,3 @@
 
 (defun adj-p (a b)
   (= (distance a b) 1))
-

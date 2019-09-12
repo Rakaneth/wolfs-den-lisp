@@ -19,7 +19,13 @@
     :accessor main-screen/target-mode)
    (target
     :initform nil
-    :accessor main-screen/target)))
+    :accessor main-screen/target)
+   (target-radius
+    :initform nil
+    :accessor main-screen/target-radius)
+   (target-rad-type
+    :initform nil
+    :accessor main-screen/target-rad-type)))
 
 (defmethod draw-path-to-target ((ms main-screen))
   (let* ((m (main-screen/cur-map ms))
@@ -52,7 +58,7 @@
                   (:numpad-1 (move-by player +southwest+))
                   (:numpad-4 (move-by player +west+))
                   (:numpad-7 (move-by player +northwest+))
-                  (:space (toggle-target-mode ms) t)
+                  (:space (toggle-target-mode ms :r 7) t)
                   (:p (if target (draw-path-to-target ms) t))
                   (:c (clear-marks m) t)
                   (:close nil)
@@ -85,14 +91,17 @@
 (defmethod draw ((ms main-screen) &key)
   (let ((m (main-screen/cur-map ms)))
     (draw m)
+    (draw-targeting ms)
     (draw-entities m)
     (draw-ui ms)
     (draw-marked m)))
 
-(defmethod toggle-target-mode ((ms main-screen))
+(defmethod toggle-target-mode ((ms main-screen) &key r rad-type)
   (with-accessors ((m main-screen/cur-map)
                    (targeting main-screen/target-mode)
-                   (target main-screen/target))
+                   (target main-screen/target)
+                   (r-type main-screen/target-rad-type)
+                   (radius main-screen/target-radius))
       ms
     (if targeting
         (progn
@@ -109,9 +118,30 @@
                                         :char #\X
                                         :x x
                                         :y y
-                                        :color "yellow"
+                                        :color "red"
                                         :name "Targeting")))
             (add-entity m cursor)
             (setf (game-map/focus m) cursor
-                  targeting t))))))
+                  targeting t
+                  r-type rad-type
+                  radius r))))))
+
+(defmethod clear-targeting ((ms main-screen))
+  (with-accessors ((target main-screen/target)
+                   (t-type main-screen/target-rad-type)
+                   (t-rad main-screen/target-radius)) 
+      ms
+    (setf target nil
+          t-type nil
+          t-rad nil)))
+
+(defmethod draw-targeting ((ms main-screen))
+  (with-accessors ((r-type main-screen/target-rad-type)
+                   (r main-screen/target-radius)
+                   (m main-screen/cur-map)
+                   (targeting main-screen/target-mode))
+      ms
+    (when (and r targeting)
+      (dolist (pt (radius m r (focus-coord m) :rad-type r-type))
+        (draw-on-map m pt #\* "yellow")))))
 
