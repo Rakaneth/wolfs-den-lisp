@@ -2,7 +2,7 @@
 
 (define-ego :oak (list :tier 1
                        :name "oak"
-                       :types '(:item)
+                       :types '(:item :staff :hammer)
                        :color "oak"
                        :hardness 10
                        :staff '(:pwr 5 :wil 5)
@@ -12,7 +12,7 @@
 
 (define-ego :iron (list :tier 1
                         :name "iron"
-                        :types '(:item)
+                        :types '(:item :sword :axe :hammer :armor)
                         :color "iron"
                         :hardness 20
                         :sword '(:dmg 2)
@@ -24,7 +24,7 @@
 
 (define-ego :steel (list :tier 2
                          :name "steel"
-                         :types '(:item)
+                         :types '(:item :sword :axe :hammer :armor)
                          :color "steel"
                          :hardness 30
                          :sword '(:dmg 3 :atp 5)
@@ -37,7 +37,7 @@
 
 (define-ego :bone (list :tier 2
                         :name "bone"
-                        :types '(:item)
+                        :types '(:item :sword :armor :staff)
                         :color "bone"
                         :hardness 5
                         :sword '(:atp 5 :dmg -1 :pwr 5)
@@ -48,7 +48,7 @@
 
 (define-ego :blackiron (list :tier 5
                              :name "blackiron"
-                             :types '(:item)
+                             :types '(:item :sword :axe :light :hammer :armor)
                              :color "blackiron"
                              :hardness 40
                              :sword '(:atp 5 :dmg 3 :res 5 :pwr -10 :wil -10)

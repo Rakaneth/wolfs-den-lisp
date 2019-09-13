@@ -72,7 +72,8 @@
     (with-accessors ((name entity/name)
                      (tags entity/tags)
                      (color entity/color)
-                     (stats entity/stats)) 
+                     (stats entity/stats)
+                     (desc entity/desc)) 
         entity
       (let* ((-name (getf template :name))
              (-color (getf template :color))
@@ -91,7 +92,8 @@
         (when -name
           (if -suffix
               (setf name (format nil "~a of ~a" name -name))
-              (setf name (format nil "~a ~a" -name name))))
+              (setf name (format nil "~a ~a" -name name)))
+          (setf desc (format nil desc -name)))
         (when -color
           (setf color -color))
         (when -hardness
@@ -141,7 +143,7 @@
             :finally (return foetus)))))
 
 ;;; Untiered entities appear in all tier-based searches
-(defun search-repo (repo-sym &key tier require-all require-any (tier-test #'=))
+(defun search-repo (repo-sym &key tier require-all require-any exclude (tier-test #'=))
   (with-repo repo-sym map-repo
     (loop :for k being each hash-key of map-repo :using (hash-value v)
           :for v-tier = (getf v :tier)
@@ -151,17 +153,19 @@
                          (funcall tier-test (or v-tier 6) tier))
                      (subsetp require-all v-tags)
                      (or (not require-any) 
-                         (intersection require-any v-tags)))
+                         (intersection require-any v-tags))
+                     (not (intersection exclude v-tags)))
             :collect k 
             :and :collect v
           :end)))
 
-(defun prob-table (repo-sym &key tier require-all require-any (tier-test #'=))
+(defun prob-table (repo-sym &key tier require-all require-any exclude (tier-test #'=))
   (let ((results (search-repo repo-sym 
                               :tier tier
                               :require-all require-all
                               :require-any require-any
-                              :tier-test tier-test)))
+                              :tier-test tier-test
+                              :exclude exclude)))
     (loop :for (k v) :on results :by #'cddr
           :for weight = (getf v :freq)
           :when weight
@@ -169,13 +173,74 @@
           :end)))
 
 
-(defun random-creature (&key (pos '(0 . 0)) name require-all require-any tier (tier-test #'=))
+(defun random-creature (&key (pos '(0 . 0)) name require-all require-any exclude tier (tier-test #'=))
   (let* ((cands (prob-table :creature
                             :tier tier
                             :tier-test tier-test
                             :require-all require-all
-                            :require-any require-any))
+                            :require-any require-any
+                            :exclude exclude))
          (choice (get-weighted cands)))
     (create-creature choice 
                      :pos pos
                      :name name)))
+
+(defun create-item (template-key &key (pos '(0 . 0)) egos)
+  (with-template :item template-key template
+    (let* ((mould (make-instance 'entity
+                                 :layer 2
+                                 :e-type :item
+                                 :tags (getf template :tags)
+                                 :x (car pos)
+                                 :y (cdr pos)
+                                 :id (string-downcase template-key)
+                                 :name (getf template :name)
+                                 :desc (getf template :desc)
+                                 :char (getf template :glyph)
+                                 :color (getf template :color))))
+      (dolist (ego egos mould)
+        (apply-ego! mould ego)))))
+
+(defun random-item (&key (pos '(0 . 0)) require-all require-any exclude tier (tier-test #'=))
+  (let* ((cands (prob-table :item
+                            :tier tier
+                            :tier-test tier-test
+                            :require-all require-all
+                            :require-any require-any
+                            :exclude exclude))
+         (choice (get-weighted cands))
+         (template (gethash choice *item-templates*))
+         (req-mat (getf template :material))
+         (mat-choice (get-weighted (prob-table :ego 
+                                                :tier tier
+                                                :require-all (cons :material require-all)
+                                                :require-any require-any
+                                                :tier-test tier-test
+                                                :exclude exclude)))
+         (extra-pref (with-chance 10 
+                       (get-weighted (prob-table :ego
+                                                  :tier tier
+                                                  :require-all (cons :prefix require-all)
+                                                  :require-any require-any
+                                                  :tier-test tier-test
+                                                  :exclude (cons :material exclude)))))
+         (extra-suf (with-chance 10
+                      (get-weighted (prob-table :ego
+                                                 :tier tier
+                                                 :require-all (cons :suffix require-all)
+                                                 :require-any require-any
+                                                 :tier-test tier-test
+                                                 :exclude (cons :material exclude)))))
+         (final-egos nil))
+    (debug-print "FACTORY-ITEM" 
+                 "item: ~a req-mat: ~a mat-choice: ~a final-egos: ~a"
+                 choice req-mat mat-choice final-egos)
+    (when req-mat
+      (if mat-choice
+          (push mat-choice final-egos)
+          (error "No mat chosen for mat-required item ~a" choice)))
+    (when extra-pref
+      (push extra-pref final-egos))
+    (when extra-suf
+      (push extra-suf final-egos))
+    (create-item choice :pos pos :egos final-egos)))
