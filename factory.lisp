@@ -140,35 +140,42 @@
                          (set-stat! foetus :vis 6))
             :finally (return foetus)))))
 
-;;; Untiered entities appear in all searches
-(defun prob-table (repo-sym &key tags tier (search-type :and) (tier-test #'=))
+;;; Untiered entities appear in all tier-based searches
+(defun search-repo (repo-sym &key tier require-all require-any (tier-test #'=))
   (with-repo repo-sym map-repo
-    (loop :for k being each hash-key of map-repo
-            :using (hash-value v)
-          :for weight = (getf v :freq)
+    (loop :for k being each hash-key of map-repo :using (hash-value v)
           :for v-tier = (getf v :tier)
           :for v-tags = (getf v :tags)
-          :when (and weight 
-                     (> weight 0) 
-                     (if (eq search-type :and) 
-                         (subsetp tags v-tags)
-                         (intersection tags v-tags))
-                     (or (not tier) (funcall tier-test (or v-tier 6) tier)))
+          :when (and (or (not tier)
+                         (not v-tier)
+                         (funcall tier-test (or v-tier 6) tier))
+                     (subsetp require-all v-tags)
+                     (or (not require-any) 
+                         (intersection require-any v-tags)))
+            :collect k 
+            :and :collect v
+          :end)))
+
+(defun prob-table (repo-sym &key tier require-all require-any (tier-test #'=))
+  (let ((results (search-repo repo-sym 
+                              :tier tier
+                              :require-all require-all
+                              :require-any require-any
+                              :tier-test tier-test)))
+    (loop :for (k v) :on results :by #'cddr
+          :for weight = (getf v :freq)
+          :when weight
             :collect (cons k weight)
           :end)))
 
-(defun search-repo (repo-sym &key tags tier (search-type :and) (tier-test #'=))
-  (loop :for (k . _) in (prob-table repo-sym 
-                                    :tags tags 
-                                    :tier tier
-                                    :search-type search-type
-                                    :tier-test tier-test)
-        :collect k))
 
-
-(defun random-creature (&key (pos '(0 . 0)) name tags (search-type :and))
-  (create-creature (get-weighted (prob-table :creature 
-                                             :tags tags                            
-                                             :search-type search-type))
-                   :pos pos
-                   :name name))
+(defun random-creature (&key (pos '(0 . 0)) name require-all require-any tier (tier-test #'=))
+  (let* ((cands (prob-table :creature
+                            :tier tier
+                            :tier-test tier-test
+                            :require-all require-all
+                            :require-any require-any))
+         (choice (get-weighted cands)))
+    (create-creature choice 
+                     :pos pos
+                     :name name)))

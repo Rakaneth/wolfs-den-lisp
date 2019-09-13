@@ -85,7 +85,7 @@
                           :dmg 3
                           :damage-type :magic
                           :equip-type :staff
-                          :tags (list :bone :wood)
+                          :tags (list :bone :wood :weapon)
                           :freq 3))
 
 (define-item :rapier (list :name "rapier"
