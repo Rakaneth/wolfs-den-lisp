@@ -62,7 +62,10 @@
     :accessor entity/layer)
    (equipped-p
     :initform nil
-    :accessor entity/equipped-p)))
+    :accessor entity/equipped-p)
+   (damage-type
+    :initform nil
+    :accessor entity/damage-type)))
 
 
 (defmethod initialize-instance :after ((e entity) &key e-type (layer 1))
@@ -125,6 +128,9 @@
 (defmethod item-p ((e entity))
   (has-tag e :item))
 
+(defmethod equip-p ((e entity))
+  (has-tag e :equip))
+
 (defmacro with-stat-list (e stat-list stats-sym key-sym val-sym &rest body)
   `(loop :for (,key-sym ,val-sym) on ,stat-list by #'cddr 
          :while v
@@ -138,10 +144,13 @@
 (defmethod set-stat! ((e entity) stat-symbol val)
   (setf (getf (entity/stats e) stat-symbol) val))
 
+(defmethod change-stat! ((e entity) stat-symbol val)
+  (set-stat! e stat-symbol (+ val (get-stat e stat-symbol))))
+
 (defmethod set-stats! ((e entity) stat-list)
   (with-stat-list e stat-list _ k v
     (set-stat! e k v)))
 
 (defmethod mod-stats! ((e entity) stat-list)
   (with-stat-list e stat-list _ k v
-    (set-stat! e k (+ v (get-stat e k)))))
+    (change-stat! e k v)))

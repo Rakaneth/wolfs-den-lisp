@@ -1,13 +1,21 @@
 (in-package #:wolfs-den-lisp)
 
-(defparameter *natural-weapon-tags* (list :natural :weapon))
-(defparameter *mark-tags* (list :holy :dragon :trinket))
+(defparameter *natural-weapon-tags* (list :natural :weapon :equip))
+(defparameter *mark-tags* (list :holy :dragon :trinket :equip))
+(defparameter *weapon-tags* (list :weapon :equip))
+(defparameter *armor-tags* (list :armor :equip))
 
 (defun mark-tags ()
   (copy-list *mark-tags*))
 
 (defun natural-tags ()
   (copy-list *natural-weapon-tags*))
+
+(defun weapon-tags (&rest args)
+  (append *weapon-tags* args))
+
+(defun armor-tags (&rest args)
+  (append *armor-tags* args))
 
 (define-item :white-mark (list :name "Mark of Ilma"
                                :desc "A holy symbol of the dragon Il'ma'to'ee'rey"
@@ -60,7 +68,7 @@
                         :dmg 10
                         :damage-type :slash
                         :equip-type :axe
-                        :tags (list :axe :weapon)
+                        :tags (weapon-tags :axe)
                         :freq 5))
 
 (define-item :sword (list :name "sword"
@@ -72,7 +80,7 @@
                           :dmg 6
                           :damage-type :slash
                           :equip-type :sword
-                          :tags (list :sword :weapon)
+                          :tags (weapon-tags :sword)
                           :freq 5))
 
 (define-item :staff (list :name "staff"
@@ -85,7 +93,7 @@
                           :dmg 3
                           :damage-type :magic
                           :equip-type :staff
-                          :tags (list :magic :weapon)
+                          :tags (weapon-tags :magic)
                           :freq 3))
 
 (define-item :rapier (list :name "rapier"
@@ -97,8 +105,39 @@
                            :dmg 4
                            :damage-type :pierce
                            :equip-type :light
-                           :tags (list :light :weapon)
+                           :tags (weapon-tags :light)
                            :freq 3))
+
+(define-item :warhammer (list :name "warhammer"
+                              :desc "A heavy, one-handed ~a warhammer"
+                              :slot :weapon
+                              :glyph #\\
+                              :material (list :metal)
+                              :dmg 8
+                              :damage-type :blunt
+                              :equip-type :hammer
+                              :tags (weapon-tags :hammer)
+                              :freq 4))
+
+(define-item :jack (list :name "jack"
+                         :desc "A simple ~a jack"
+                         :slot :armor
+                         :glyph #\}
+                         :material (list :leather)
+                         :dfp 3
+                         :equip-type :armor
+                         :tags (armor-tags)
+                         :freq 7))
+
+(define-item :robes (list :name "robes"
+                          :desc "Long, flowing robes of ~a"
+                          :glyph #\)
+                          :slot :armor
+                          :material (list :cloth)
+                          :dfp 10
+                          :equip-type :armor
+                          :tags (armor-tags)
+                          :freq 4))
 
 (define-item :breastplate (list :name "breastplate"
                                 :desc "Armor covering the chest and torso, made from ~a"
@@ -107,7 +146,7 @@
                                 :material (list :metal :leather :bone)
                                 :dfp 5
                                 :equip-type :armor
-                                :tags (list :armor)
+                                :tags (armor-tags)
                                 :freq 4))
 
 (define-item :chain (list :name "chainmail"
@@ -117,7 +156,7 @@
                           :material (list :metal)
                           :dfp 7
                           :equip-type :armor
-                          :tags (list :armor)
+                          :tags (armor-tags)
                           :freq 2))
 
 (define-item :sun-blade (list :name "Sun Blade"
@@ -132,7 +171,7 @@
                               :stam 5
                               :equip-type :sword
                               :damage-type :magic
-                              :tags (list :weapon :magic :sun :artifact)
+                              :tags (weapon-tags :magic :sun :artifact)
                               :tier 2))
 
 (define-item :wizard-staff (list :name "wizard's staff"
@@ -145,7 +184,7 @@
                                  :res 10
                                  :equip-type :staff
                                  :damage-type :magic
-                                 :tags (list :weapon :staff :magic)
+                                 :tags (weapon-tags :staff :magic)
                                  :freq 1
                                  :tier 2))
 
@@ -160,5 +199,5 @@
                                :res 10
                                :pwr 20
                                :dmg 12
-                               :tags (list :weapon :hammer :magic :dark :artifact)
+                               :tags (weapon-tags :dark :magic :hammer :artifact)
                                :tier 3))

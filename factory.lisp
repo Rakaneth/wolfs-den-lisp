@@ -99,7 +99,7 @@
         (when -color
           (setf color -color))
         (when -hardness
-          (set-stat! entity :hardness -hardness))
+          (change-stat! entity :hardness -hardness))
         (when (and -staff (has-tag entity :staff))
           (mod-stats! entity -staff))
         (when (and -axe (has-tag entity :axe))
@@ -203,7 +203,14 @@
       (dolist (ego egos mould)
         (apply-ego! mould ego)))))
 
-(defun random-item (&key (pos '(0 . 0)) require-all require-any exclude tier (tier-test #'=))
+(defun random-item (&key 
+                      (pos '(0 . 0)) 
+                      require-all 
+                      require-any 
+                      exclude 
+                      tier 
+                      (tier-test #'<=) 
+                      ego-chance)
   (let* ((cands (prob-table :item
                             :tier tier
                             :tier-test tier-test
@@ -213,30 +220,27 @@
          (choice (get-weighted cands))
          (template (gethash choice *item-templates*))
          (req-mat (getf template :material))
+         (eq-type (getf template :equip-type))
          (mat-choice (get-weighted (prob-table :ego 
-                                                :tier tier
-                                                :require-all '(:material)
-                                                :require-any req-mat
-                                                :tier-test tier-test
-                                                :exclude exclude)))
-         (extra-pref (with-chance 10 
+                                               :tier tier
+                                               :require-all '(:material)
+                                               :require-any req-mat
+                                               :tier-test tier-test
+                                               :exclude exclude)))
+         (extra-pref (with-chance (or ego-chance 0)
                        (get-weighted (prob-table :ego
-                                                  :tier tier
-                                                  :require-all (cons :prefix require-all)
-                                                  :require-any require-any
-                                                  :tier-test tier-test
-                                                  :exclude (cons :material exclude)))))
-         (extra-suf (with-chance 10
-                      (get-weighted (prob-table :ego
                                                  :tier tier
-                                                 :require-all (cons :suffix require-all)
-                                                 :require-any require-any
+                                                 :require-all (list :prefix eq-type)
                                                  :tier-test tier-test
                                                  :exclude (cons :material exclude)))))
+         (extra-suf (with-chance (or ego-chance 0)
+                      (get-weighted (prob-table :ego
+                                                :tier tier
+                                                :require-all (list :suffix eq-type)
+                                                :tier-test tier-test
+                                                :exclude (cons :material exclude)))))
          (final-egos nil))
-    (debug-print "FACTORY-ITEM" 
-                 "item: ~a req-mat: ~a mat-choice: ~a final-egos: ~a"
-                 choice req-mat mat-choice final-egos)
+
     (when extra-pref
       (push extra-pref final-egos))
     (when extra-suf
@@ -245,4 +249,7 @@
       (if mat-choice
           (push mat-choice final-egos)
           (error "No mat chosen for mat-required item ~a" choice)))
+    (debug-print "FACTORY-ITEM" 
+                 "item: ~a req-mat: ~a mat-choice: ~a final-egos: ~a"
+                 choice req-mat mat-choice final-egos)
     (create-item choice :pos pos :egos final-egos)))
