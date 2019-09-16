@@ -77,7 +77,8 @@
         entity
       (let* ((-name (getf template :name))
              (-color (getf template :color))
-             (-suffix (getf template :suffix))
+             (-suffix (find :suffix (getf template :tags)))
+             (-prefix (find :prefix (getf template :tags)))
              (-hardness (getf template :hardness))
              (-staff (getf template :staff))
              (-hammer (getf template :hammer))
@@ -89,10 +90,11 @@
              (-stats (getf template :stats))
              (-tags (getf template :tags)))
         (add-tag entity ego-key)
-        (when -name
-          (if -suffix
-              (setf name (format nil "~a of ~a" name -name))
-              (setf name (format nil "~a ~a" -name name)))
+        (when (and -name -suffix)
+          (setf name (format nil "~a ~a" name -name)))
+        (when (and -name -prefix) 
+          (setf name (format nil "~a ~a" -name name)))
+        (when -name 
           (setf desc (format nil desc -name)))
         (when -color
           (setf color -color))
@@ -213,8 +215,8 @@
          (req-mat (getf template :material))
          (mat-choice (get-weighted (prob-table :ego 
                                                 :tier tier
-                                                :require-all (cons :material require-all)
-                                                :require-any require-any
+                                                :require-all '(:material)
+                                                :require-any req-mat
                                                 :tier-test tier-test
                                                 :exclude exclude)))
          (extra-pref (with-chance 10 
@@ -235,12 +237,12 @@
     (debug-print "FACTORY-ITEM" 
                  "item: ~a req-mat: ~a mat-choice: ~a final-egos: ~a"
                  choice req-mat mat-choice final-egos)
-    (when req-mat
-      (if mat-choice
-          (push mat-choice final-egos)
-          (error "No mat chosen for mat-required item ~a" choice)))
     (when extra-pref
       (push extra-pref final-egos))
     (when extra-suf
       (push extra-suf final-egos))
+    (when req-mat
+      (if mat-choice
+          (push mat-choice final-egos)
+          (error "No mat chosen for mat-required item ~a" choice)))
     (create-item choice :pos pos :egos final-egos)))

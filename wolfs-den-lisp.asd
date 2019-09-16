@@ -22,6 +22,7 @@
                (:file "maps")
                (:file "items")
                (:file "materials")
+               (:file "item-egos")
                (:file "swatch")
                (:file "ui")
                (:file "title-screen")

@@ -15,4 +15,5 @@
                             :staff '(:pwr 10 :wil 10)
                             :light '(:pwr 5 :wil 5)
                             :armor '(:pwr 10 :wil 10)
+                            :freq 5
                             :tags '(:suffix)))

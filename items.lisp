@@ -55,69 +55,69 @@
                         :desc "A large axe made from ~a"
                         :slot :weapon
                         :glyph #\/
-                        :material t
+                        :material (list :metal :bone)
                         :atp -5
                         :dmg 10
                         :damage-type :slash
                         :equip-type :axe
-                        :tags (list :metal :bone :axe :weapon)
+                        :tags (list :axe :weapon)
                         :freq 5))
 
 (define-item :sword (list :name "sword"
                           :desc "A shortsword made from ~a"
                           :slot :weapon
                           :glyph #\|
-                          :material t
+                          :material (list :metal :bone)
                           :atp 5
                           :dmg 6
                           :damage-type :slash
                           :equip-type :sword
-                          :tags (list :metal :bone :sword :weapon)
+                          :tags (list :sword :weapon)
                           :freq 5))
 
 (define-item :staff (list :name "staff"
                           :desc "A tall staff made from ~a"
                           :slot :weapon
                           :glyph #\_
-                          :material t
+                          :material (list :bone :wood :magic)
                           :pwr 5
                           :wil 5
                           :dmg 3
                           :damage-type :magic
                           :equip-type :staff
-                          :tags (list :bone :wood :weapon)
+                          :tags (list :magic :weapon)
                           :freq 3))
 
 (define-item :rapier (list :name "rapier"
                            :desc "A slender rapier made from ~a"
                            :slot :weapon
                            :glyph #\DAGGER
-                           :material t
+                           :material (list :metal :bone)
                            :atp 10
                            :dmg 4
                            :damage-type :pierce
                            :equip-type :light
-                           :tags (list :weapon :metal :light)
+                           :tags (list :light :weapon)
                            :freq 3))
 
 (define-item :breastplate (list :name "breastplate"
                                 :desc "Armor covering the chest and torso, made from ~a"
                                 :slot :armor
                                 :glyph #\}
-                                :material t
+                                :material (list :metal :leather :bone)
                                 :dfp 5
                                 :equip-type :armor
-                                :tags (list :armor :metal :leather :bone)
+                                :tags (list :armor)
                                 :freq 4))
 
 (define-item :chain (list :name "chainmail"
                           :desc "A chain hauberk made from ~a"
                           :slot :armor
                           :glyph #\)
-                          :material t
+                          :material (list :metal)
                           :dfp 7
                           :equip-type :armor
-                          :tags (list :armor :metal)
+                          :tags (list :armor)
                           :freq 2))
 
 (define-item :sun-blade (list :name "Sun Blade"
@@ -138,14 +138,14 @@
 (define-item :wizard-staff (list :name "wizard's staff"
                                  :desc "A typical wizard's staff made from ~a"
                                  :slot :weapon
-                                 :material t
+                                 :material (list :magic :bone :wood)
                                  :glyph #\_
                                  :wil 10
                                  :pwr 10
                                  :res 10
                                  :equip-type :staff
                                  :damage-type :magic
-                                 :tags (list :weapon :staff :magic :bone :wood)
+                                 :tags (list :weapon :staff :magic)
                                  :freq 1
                                  :tier 2))
 
